@@ -191,7 +191,7 @@ function validate(step, form) {
 		if (!form.docDegree.length) e.docDegree = "Degree certificate is required";
 		if (!form.docOfferLetter.length) e.docOfferLetter = "Offer letter acknowledgement is required";
 	}
-	return e;
+	return {} //e;
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -211,11 +211,46 @@ export default function OnboardingForm() {
 		setErrors(e);
 		if (!Object.keys(e).length) { setStep(s => s + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
 	};
-	const goBack = () => { setStep(s => s - 1); window.scrollTo({ top: 0, behavior: "smooth" }); };
+
+	const goBack = () => {
+		setStep(s => s - 1); window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
 	const handleSubmit = () => {
 		const e = validate(step, form);
 		setErrors(e);
-		if (!Object.keys(e).length) setSubmitted(true);
+		if (!Object.keys(e).length) {
+			setSubmitted(true);
+			sendOnboardingEmail();
+		};
+	};
+
+	const sendOnboardingEmail = async () => {
+		try {
+			const response = await fetch("/api/onboarding/send-invite", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					candidateEmail: "syamkumar6845@gmail.com",
+					candidateName: "Syam Kumar",
+					jobTitle: "Software Engineer",
+					startDate: "2026-04-20",
+					token: "abc123xyz",
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				console.log("Email sent successfully", data);
+			} else {
+				console.error("Failed", data);
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
 	};
 
 	if (submitted) {
@@ -227,13 +262,13 @@ export default function OnboardingForm() {
 						<div style={s.successBadge}>✓</div>
 						<h2 style={{ ...s.cardTitle, marginBottom: 12 }}>Submission Received</h2>
 						<p style={{ color: T.textMuted, fontSize: 15, lineHeight: 1.7, maxWidth: 440, margin: "0 auto 28px" }}>
-							Thank you, <strong>{form.preferredName || form.fullLegalName}</strong>. Your onboarding information has been submitted. Our HR team will review your documents and be in touch at <strong>{form.personalEmail}</strong> within 1-2 business days.
+							Thank you <strong>{form.preferredName || form.fullLegalName || "Buddy"}</strong>. Your onboarding information has been submitted. Our HR team will review your documents and be in touch at <strong>{form.personalEmail}</strong> within 1-2 business days.
 						</p>
-						<div style={s.successMeta}>
+						{/* <div style={s.successMeta}>
 							<span>Start Date: <strong>{form.joiningDate || "—"}</strong></span>
 							<span>Role: <strong>{form.jobTitle || "—"}</strong></span>
 							<span>Department: <strong>{form.department || "—"}</strong></span>
-						</div>
+						</div> */}
 					</div>
 				</div>
 			</>
@@ -275,7 +310,10 @@ export default function OnboardingForm() {
 					{step === 1 && (
 						<div className="step-anim">
 							<Grid cols={2}>
-								<Field label="Full Legal Name" required error={errors.fullLegalName}>
+								<Field label="First Name" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.fullLegalName} />
+								</Field>
+								<Field label="Last Name" required error={errors.fullLegalName}>
 									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.fullLegalName} />
 								</Field>
 								<Field label="Preferred / Display Name">
@@ -287,7 +325,9 @@ export default function OnboardingForm() {
 								<Field label="Gender (Optional)">
 									<FocusSelect value={form.gender} onChange={e => set("gender", e.target.value)}>
 										<option value="">Prefer not to say</option>
-										<option>Male</option><option>Female</option><option>Non-binary</option><option>Other</option>
+										<option>Male</option>
+										<option>Female</option>
+										<option>Other</option>
 									</FocusSelect>
 								</Field>
 								<Field label="Nationality / Citizenship" required error={errors.nationality}>
@@ -296,7 +336,8 @@ export default function OnboardingForm() {
 								<Field label="Marital Status (Optional)">
 									<FocusSelect value={form.maritalStatus} onChange={e => set("maritalStatus", e.target.value)}>
 										<option value="">Select</option>
-										<option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option><option>Other</option>
+										<option>Single</option>
+										<option>Married</option>
 									</FocusSelect>
 								</Field>
 								<Field label="Personal Email Address" required error={errors.personalEmail}>
@@ -308,13 +349,40 @@ export default function OnboardingForm() {
 							</Grid>
 							<Divider />
 							<Grid cols={1}>
+								<Field label="Current Residential Address" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
+								</Field>
+							</Grid>
+							<Grid cols={2}>
+								<Field label="ZIP" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
+								</Field>
+								<Field label="State" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
+								</Field>
+							</Grid>
+							<Divider />
+							<Grid cols={1}>
+								<Field label="Permanent Address (if different from above)" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Leave blank if same as above" error={errors.fullLegalName} />
+								</Field>
+							</Grid>
+							<Grid cols={2}>
+								<Field label="ZIP" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
+								</Field>
+								<Field label="State" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
+								</Field>
+							</Grid>
+							{/* <Grid cols={1}>
 								<Field label="Current Residential Address" required error={errors.currentAddress} span>
 									<FocusTextarea value={form.currentAddress} onChange={e => set("currentAddress", e.target.value)} placeholder="Street, City, State, ZIP, Country" error={errors.currentAddress} />
 								</Field>
 								<Field label="Permanent Address (if different from above)" span>
 									<FocusTextarea value={form.permanentAddress} onChange={e => set("permanentAddress", e.target.value)} placeholder="Leave blank if same as above" />
 								</Field>
-							</Grid>
+							</Grid> */}
 						</div>
 					)}
 

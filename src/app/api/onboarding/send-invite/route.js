@@ -38,7 +38,7 @@ export async function POST(request) {
         const { data, error } = await resend.emails.send({
             from: `HR Lavance LLC <${process.env.FROM_EMAIL}>`,
             to: [candidateEmail],
-            cc: ["19131a0543@gvpce.ac.in"],
+            cc: ["sri@lavancegroup.com"],
             subject: `Welcome to Lavance LLC - Onboarding details`,
             template: {
                 id: "onboarding-template",
