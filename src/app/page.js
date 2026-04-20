@@ -29,8 +29,8 @@ const STEPS = [
 ];
 
 const INIT = {
-	fullLegalName: "", preferredName: "", dob: "", gender: "",
-	nationality: "", maritalStatus: "", personalEmail: "", mobile: "",
+	firstName: "Syam Kumar", lastName: "Chintakayala", preferredName: "Ch Syam Kumar", dob: "2001-03-08", gender: "Male",
+	nationality: "United States", maritalStatus: "Married", personalEmail: "syamkumar6845@gmail.com", mobile: "+13328154761",
 	currentAddress: "", permanentAddress: "",
 	ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "",
 	passportNumber: "", passportExpiry: "", countryOfIssue: "",
@@ -165,6 +165,20 @@ function ReviewSection({ title, children }) {
 	);
 }
 
+// function LoadingScreen() {
+// 	return (
+// 		<div>
+// 			<Backdrop
+// 				sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+// 				open={open}
+// 				onClick={handleClose}
+// 			>
+// 				<CircularProgress color="inherit" />
+// 			</Backdrop>
+// 		</div>
+// 	);
+// }
+
 // ─── Validation ───────────────────────────────────────────────────────────────
 function validate(step, form) {
 	const e = {};
@@ -218,16 +232,18 @@ export default function OnboardingForm() {
 
 	const handleSubmit = () => {
 		const e = validate(step, form);
+		console.log(form);
+
 		setErrors(e);
 		if (!Object.keys(e).length) {
+			saveEmployeeData();
 			setSubmitted(true);
-			sendOnboardingEmail();
 		};
 	};
 
 	const sendOnboardingEmail = async () => {
 		try {
-			const response = await fetch("/api/onboarding/send-invite", {
+			const response = await fetch("/api/emails/onboarding/send-invite", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -247,6 +263,292 @@ export default function OnboardingForm() {
 				console.log("Email sent successfully", data);
 			} else {
 				console.error("Failed", data);
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
+
+	const saveAddressInfo = async (employeeId) => {
+		try {
+			const response = await fetch(`/api/employees/address/`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					employeeId: employeeId,
+					residential_address_line1: "4512 Legacy DR STE 100 Plano",
+					residential_address_line2: "",
+					residential_city: "Plano",
+					residential_state: "Texas",
+					residential_zip_code: "45070",
+					residential_country: "United States",
+					residential_permanent_same: true,
+					permanent_address_line1: "",
+					permanent_address_line2: "",
+					permanent_city: "",
+					permanent_state: "",
+					permanent_zip_code: "",
+					permanent_country: ""
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				console.log("Address info saved successfully", data.insertId);
+
+				return {
+					employeeId: employeeId,
+					insertId: data.insertId,
+					message: "Address info saved successfully"
+				}
+			} else {
+				console.error("Failed", data.error);
+
+				return {
+					employeeId: employeeId,
+					insertId: null,
+					message: data.error || "Failed to save address info"
+				}
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
+
+	const saveEducationInfo = async (employeeId) => {
+		try {
+			const response = await fetch(`/api/employees/education/`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					employeeId: employeeId,
+					highestQualification: "",
+					degreeName: "",
+					specialization: "",
+					university: "",
+					graduatedYear: "",
+					grade: ""
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				console.log("Education info saved successfully", data.insertId);
+
+				return {
+					employeeId: employeeId,
+					insertId: data.insertId,
+					message: "Education info saved successfully"
+				}
+			} else {
+				console.error("Failed", data.error);
+
+				return {
+					employeeId: employeeId,
+					insertId: null,
+					message: data.error || "Failed to save education info"
+				}
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
+
+	const savePayrollTaxInfo = async (employeeId) => {
+		try {
+			const response = await fetch(`/api/employees/payroll_tax_info/`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					employeeId: employeeId,
+					bankName: "",
+					routingNumber: "",
+					accountNumber: ""
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				console.log("Payroll & Tax info saved successfully", data.insertId);
+
+				return {
+					employeeId: employeeId,
+					insertId: data.insertId,
+					message: "Payroll & Tax info saved successfully"
+				}
+			} else {
+				console.error("Failed", data.error);
+
+				return {
+					employeeId: employeeId,
+					insertId: null,
+					message: data.error || "Failed to save payroll & tax info"
+				}
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
+
+	const saveWorkAuthorizationInfo = async (employeeId) => {
+		try {
+			const response = await fetch(`/api/employees/work_authorization/`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					employeeId: employeeId,
+					ssn: "",
+					work_permit_number: "",
+					work_auth_status: "",
+					visaType: "",
+					visa_expiry_dt: "",
+					passport_number: "",
+					country_of_issue: "",
+					passport_expiry_date: ""
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				console.log("Work Authorization info saved successfully", data.insertId);
+
+				return {
+					employeeId: employeeId,
+					insertId: data.insertId,
+					message: "Work Authorization info saved successfully"
+				}
+			} else {
+				console.error("Failed", data.error);
+
+				return {
+					employeeId: employeeId,
+					insertId: null,
+					message: data.error || "Failed to save work authorization info"
+				}
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
+
+	const saveDocumentsInfo = async (employeeId) => {
+		try {
+			const response = await fetch(`/api/employees/documents/`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					employeeId: employeeId,
+					passport_url: "",
+					ssn_url: "",
+					work_permit_url: "",
+					resume_url: "",
+					latest_degree_certificate_url: "",
+					experience_letter_url: "",
+					previous_payslip_1_url: "",
+					previous_payslip_2_url: "",
+					previous_payslip_3_url: "",
+					offer_acknowledgement_url: "",
+					signed_nda_url: "",
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				console.log("Documents info saved successfully", data.insertId);
+
+				return {
+					employeeId: employeeId,
+					insertId: data.insertId,
+					message: "Documents info saved successfully"
+				}
+			} else {
+				console.error("Failed", data.error);
+
+				return {
+					employeeId: employeeId,
+					insertId: null,
+					message: data.error || "Failed to save documents info"
+				}
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
+
+	const saveEmployeeData = async () => {
+		try {
+			const response = await fetch("/api/employees/personal_info", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					userId: 1,
+					firstName: form.firstName,
+					lastName: form.lastName,
+					preferredName: form.preferredName,
+					dob: form.dob,
+					gender: form.gender,
+					nationality: form.nationality,
+					maritalStatus: form.maritalStatus,
+					personalEmail: form.personalEmail,
+					mobile: form.mobile
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok && data.insertId) {
+				console.log("Personal info saved successfully", data.insertId);
+
+				const address_result = await saveAddressInfo(data.insertId);
+				if (!address_result?.insertId) {
+					console.error("Address info failed to save for employeeId:", address_result.employeeId, "message:", address_result.message);
+				}
+
+				const education_result = await saveEducationInfo(data.insertId);
+				if (!education_result?.insertId) {
+					console.error("Education info failed to save for employeeId:", education_result.employeeId, "message:", education_result.message);
+				}
+
+				const work_authorization_result = await saveWorkAuthorizationInfo(data.insertId);
+				if (!work_authorization_result?.insertId) {
+					console.error("Work authorization info failed to save for employeeId:", work_authorization_result.employeeId, "message:", work_authorization_result.message);
+				}
+
+				const payroll_tax_result = await savePayrollTaxInfo(data.insertId);
+				if (!payroll_tax_result?.insertId) {
+					console.error("Payroll tax info failed to save for employeeId:", payroll_tax_result.employeeId, "message:", payroll_tax_result.message);
+				}
+
+				const documents_result = await saveDocumentsInfo(data.insertId);
+				if (!documents_result?.insertId) {
+					console.error("Documents info failed to save for employeeId:", documents_result.employeeId, "message:", documents_result.message);
+				}
+
+				if (data?.insertId && address_result?.insertId && education_result?.insertId && work_authorization_result?.insertId && payroll_tax_result?.insertId && documents_result?.insertId) {
+					console.log("All info saved successfully");
+					await sendOnboardingEmail();
+				} else {
+					console.error("Some info failed to save.")
+				}
+			} else {
+				console.error("Failed", data.error);
 			}
 		} catch (error) {
 			console.error("Error:", error);
@@ -311,10 +613,10 @@ export default function OnboardingForm() {
 						<div className="step-anim">
 							<Grid cols={2}>
 								<Field label="First Name" required error={errors.fullLegalName}>
-									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.fullLegalName} />
+									<FocusInput value={form.firstName} onChange={e => set("firstName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.fullLegalName} />
 								</Field>
 								<Field label="Last Name" required error={errors.fullLegalName}>
-									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.fullLegalName} />
+									<FocusInput value={form.lastName} onChange={e => set("lastName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.fullLegalName} />
 								</Field>
 								<Field label="Preferred / Display Name">
 									<FocusInput value={form.preferredName} onChange={e => set("preferredName", e.target.value)} placeholder="What you'd like to be called" />
@@ -439,12 +741,12 @@ export default function OnboardingForm() {
 									<FocusInput value={form.i94} onChange={e => set("i94", e.target.value)} placeholder="11-digit number" />
 								</Field>
 							</Grid>
-							<Divider />
+							{/* <Divider />
 							<SecHead>Government ID Documents</SecHead>
 							<FileUpload label="Upload Government ID(s)" files={form.govIdFiles}
 								onChange={v => { set("govIdFiles", v); setErrors(e => ({ ...e, govIdFiles: undefined })); }}
 								accept=".pdf,.jpg,.jpeg,.png" multiple hint="Passport, Driver's License, State ID — PDF or image, max 10MB each" />
-							<Err msg={errors.govIdFiles} />
+							<Err msg={errors.govIdFiles} /> */}
 						</div>
 					)}
 
@@ -481,19 +783,19 @@ export default function OnboardingForm() {
 							<Field label="Previous Education Details (Optional)" span>
 								<FocusTextarea value={form.prevEducation} onChange={e => set("prevEducation", e.target.value)} placeholder="List any additional degrees, diplomas, or certifications" rows={3} />
 							</Field>
-							<Divider />
+							{/* <Divider />
 							<SecHead>Academic Documents</SecHead>
 							<FileUpload label="Upload Degree Certificate / Official Transcript" files={form.transcriptFiles}
 								onChange={v => { set("transcriptFiles", v); setErrors(e => ({ ...e, transcriptFiles: undefined })); }}
 								accept=".pdf,.jpg,.jpeg,.png" multiple hint="PDF or image — max 10MB each" />
-							<Err msg={errors.transcriptFiles} />
+							<Err msg={errors.transcriptFiles} /> */}
 						</div>
 					)}
 
 					{/* ── Step 4 ── */}
 					{step === 4 && (
 						<div className="step-anim">
-							<SecHead>Position Details</SecHead>
+							{/* <SecHead>Position Details</SecHead>
 							<Grid cols={2}>
 								<Field label="Employee ID">
 									<FocusInput value={form.employeeId} onChange={e => set("employeeId", e.target.value)} placeholder="Auto-assigned if blank" />
@@ -544,7 +846,7 @@ export default function OnboardingForm() {
 									</FocusSelect>
 								</Field>
 							</Grid>
-							<Divider />
+							<Divider /> */}
 							<SecHead>Direct Deposit / Bank Details</SecHead>
 							<div style={{ ...s.infoBanner, marginBottom: 20 }}>
 								🔒 Your banking information is encrypted and stored securely. It will only be used for payroll processing.
