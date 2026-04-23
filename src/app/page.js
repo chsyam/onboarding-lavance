@@ -17,6 +17,9 @@ const T = {
 	error: "#c0392b",
 	font: "'Libre Baskerville', Georgia, serif",
 	fontSans: "'DM Sans', 'Segoe UI', sans-serif",
+	checked: "#1D9E75",
+	bgRow: "#f8f8f6",
+	bgCheck: "#ffffff",
 };
 
 const STEPS = [
@@ -30,7 +33,7 @@ const STEPS = [
 
 const INIT = {
 	firstName: "", lastName: "", preferredName: "", dob: "", gender: "",
-	nationality: "", maritalStatus: "", personalEmail: "", mobile: "", alternativeNumber: "", 
+	nationality: "", maritalStatus: "", personalEmail: "", mobile: "", alternativeNumber: "",
 	currentAddress: "", permanentAddress: "",
 	ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "",
 	passportNumber: "", passportExpiry: "", countryOfIssue: "",
@@ -59,6 +62,21 @@ function FocusInput({ value, onChange, placeholder, type = "text", error, disabl
 			onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
 			style={{ ...s.input, borderColor: error ? T.error : focus ? T.borderFocus : T.border, boxShadow: focus ? "0 0 0 3px rgba(26,60,52,0.08)" : "none", background: disabled ? "#f9f9f9" : "#fff" }}
 		/>
+	);
+}
+
+function SameAddressCheckbox({ checked, onChange }) {
+	return (
+		<button type="button" onClick={onChange} style={s.checkRow} aria-pressed={checked}>
+			<span style={{ ...s.checkBox, background: checked ? T.checked : T.bgCheck, borderColor: checked ? T.checked : T.border }}>
+				{checked && (
+					<svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+						<path d="M1 4L4 7.5L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+					</svg>
+				)}
+			</span>
+			<span style={s.checkLabel}>Permanent address is same as current residential address</span>
+		</button>
 	);
 }
 
@@ -214,6 +232,7 @@ export default function OnboardingForm() {
 	const [form, setForm] = useState(INIT);
 	const [errors, setErrors] = useState({});
 	const [submitted, setSubmitted] = useState(false);
+	const [isSame, setIsSame] = useState(false);
 
 	const set = (field, value) => {
 		setForm(f => ({ ...f, [field]: value }));
@@ -576,7 +595,6 @@ export default function OnboardingForm() {
 			</>
 		);
 	}
-
 	const progress = ((step - 1) / (STEPS?.length - 1)) * 100;
 
 	return (
@@ -685,10 +703,10 @@ export default function OnboardingForm() {
 									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="ZIP Code" error={errors.fullLegalName} />
 								</Field>
 							</Grid>
-							<Divider />
+							<SameAddressCheckbox checked={isSame} onChange={() => setIsSame(!isSame)} />
 							<Grid cols={1}>
-								<Field label="Permanent Residential Address" required error={errors.currentAddress} span>
-									<FocusTextarea value={form.currentAddress} onChange={e => set("currentAddress", e.target.value)} placeholder="Address Line 1" error={errors.currentAddress} />
+								<Field label="Permanent Residential Address" required error={errors.permanentAddress} span>
+									<FocusTextarea value={isSame ? form.currentAddress : form.permanentAddress} onChange={e => set("permanentAddress", e.target.value)} placeholder="Address Line 1" error={errors.permanentAddress} />
 								</Field>
 							</Grid>
 							<Grid cols={2}>
@@ -1120,7 +1138,9 @@ const s = {
 	reviewLabel: { width: 200, flexShrink: 0, color: T.textMuted, fontWeight: 500 },
 	reviewValue: { color: T.text, fontWeight: 500, wordBreak: "break-word" },
 	successBadge: { width: 64, height: 64, borderRadius: "50%", background: T.primary, color: "#fff", fontSize: 28, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" },
-	successMeta: { display: "flex", justifyContent: "center", gap: 32, background: T.bgSection, padding: "16px 24px", borderRadius: 8, fontSize: 13, color: T.textMuted, border: `1px solid ${T.border}`, flexWrap: "wrap" },
+	successMeta: { display: "flex", justifyContent: "center", gap: 32, background: T.bgSection, padding: "16px 24px", borderRadius: 8, fontSize: 13, color: T.textMuted, border: `1px solid ${T.border}`, flexWrap: "wrap" }, checkRow: { display: "flex", alignItems: "center", gap: 10, padding: "13px 18px", background: T.bgRow, border: "0.5px solid rgba(0,0,0,0.12)", borderRadius: 8, cursor: "pointer", width: "100%", textAlign: "left", margin: "20px 0" },
+	checkBox: { width: 18, height: 18, borderRadius: 4, border: "1.5px solid", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.15s, border-color 0.15s" },
+	checkLabel: { fontSize: 14, color: T.primary },
 };
 
 const css = `
