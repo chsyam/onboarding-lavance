@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
+import { ulid } from "ulid";
 
 export async function POST(request) {
     const body = await request.json();
@@ -9,7 +10,7 @@ export async function POST(request) {
         first_name, last_name, email, role, bill_rate, job_type, started_dt
     } = body;
 
-    const token = uuidv4();
+    const token = ulid()?.toLowerCase();
 
     try {
         const [result] = await pool.execute(

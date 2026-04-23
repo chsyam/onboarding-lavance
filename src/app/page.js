@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
+import { RotatingLines } from "react-loader-spinner";
 
 // ─── Design tokens from Lavance LLC ───────────────────────────────────────────
 const T = {
@@ -49,6 +52,127 @@ const INIT = {
 	docDegree: [], docExperience: [], docPayslips: [],
 	docOfferLetter: [], docNDA: [],
 };
+
+const modalStyles = {
+	overlay: {
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
+		height: "100vh",
+		backdropFilter: "blur(4px)",
+		backgroundColor: "rgba(0,0,0,0.4)",
+	},
+	card: {
+		background: "#fff",
+		borderRadius: "16px",
+		padding: "40px 36px 32px",
+		width: 360,
+		display: "flex",
+		flexDirection: "column",
+		alignItems: "center",
+		gap: "16px",
+		outline: "none",
+		boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+	},
+	iconWrap: {
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
+		flexDirection: "column",
+		margin: "20px auto",
+		textAlign: "center",
+		color: "#000",
+	},
+	iconInner: {
+		position: "absolute",
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	textWrap: {
+		textAlign: "center",
+	},
+	title: {
+		fontSize: "18px",
+		fontWeight: 600,
+		color: "#111",
+		margin: 0,
+	},
+	subtitle: {
+		fontSize: "14px",
+		color: "#666",
+		margin: "6px 0 0",
+		minHeight: 20,
+		animation: "fadeIn 0.3s ease",
+		"@keyframes fadeIn": {
+			from: { opacity: 0, transform: "translateY(4px)" },
+			to: { opacity: 1, transform: "translateY(0)" },
+		},
+	},
+	barTrack: {
+		width: "100%",
+		height: 6,
+		background: "#f0f0f0",
+		borderRadius: 99,
+		overflow: "hidden",
+		marginTop: 4,
+	},
+	barFill: {
+		height: "100%",
+		background: "linear-gradient(90deg, #1D9E75, #34d399)",
+		borderRadius: 99,
+		transition: "width 0.04s linear",
+	},
+	progressLabel: {
+		fontSize: 12,
+		color: "#999",
+		alignSelf: "flex-end",
+		marginTop: -8,
+	},
+	dots: {
+		display: "flex",
+		gap: "8px",
+		marginTop: 4,
+	},
+	dot: {
+		width: 8,
+		height: 8,
+		borderRadius: "50%",
+		transition: "all 0.3s ease",
+	},
+};
+
+function TokenValidation({ open }) {
+
+	return (
+		<div>
+			<Modal open={open}>
+				<Box sx={modalStyles.overlay}>
+					<Box sx={modalStyles.card}>
+
+						{/* Icon circle */}
+						<Box sx={modalStyles.iconWrap}>
+							<RotatingLines
+								visible={true}
+								height="96"
+								width="96"
+								color="grey"
+								strokeWidth="5"
+								animationDuration="1"
+								ariaLabel="rotating-lines-loading"
+								wrapperStyle={{}}
+								wrapperClass=""
+							/>
+							<div style={{ margin: "5px auto" }}>
+								Validating your token. Please wait a moment...
+							</div>
+						</Box>
+					</Box>
+				</Box>
+			</Modal>
+		</div>
+	);
+}
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 function Err({ msg }) {
@@ -233,6 +357,7 @@ export default function OnboardingForm() {
 	const [errors, setErrors] = useState({});
 	const [submitted, setSubmitted] = useState(false);
 	const [isSame, setIsSame] = useState(false);
+	const [open, setOpen] = useState(true);
 
 	const set = (field, value) => {
 		setForm(f => ({ ...f, [field]: value }));
@@ -248,6 +373,35 @@ export default function OnboardingForm() {
 	const goBack = () => {
 		setStep(s => s - 1); window.scrollTo({ top: 0, behavior: "smooth" });
 	};
+
+	const validateToken = async (token) => {
+		const response = await fetch(`/api/admin/token_validation/${token}`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+		const data = await response.json();
+		console.log(data);
+		return data;
+	}
+
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		const urlToken = params.get('token');
+
+		if (!urlToken) return;
+
+		validateToken(urlToken).then((data) => {
+			if (data?.data) {
+				const token_user = data.data;
+				set("firstName", token_user?.first_name);
+				set("lastName", token_user?.last_name);
+				set("personalEmail", token_user?.email);
+				setOpen(false);
+			}
+		});
+	}, []);
 
 	const handleSubmit = () => {
 		const e = validate(step, form);
@@ -599,6 +753,7 @@ export default function OnboardingForm() {
 
 	return (
 		<>
+			<TokenValidation open={open} />
 			<style>{css}</style>
 			<div style={s.page}>
 
@@ -741,7 +896,7 @@ export default function OnboardingForm() {
 							</Grid>
 							<Divider />
 							<SecHead>Work Authorization Status</SecHead>
-							<RadioGroup value={form.workAuthStatus} onChange={v => set("workAuthStatus", v)} error={errors.workAuthStatus}
+							<RadioGroup required value={form.workAuthStatus} onChange={v => set("workAuthStatus", v)} error={errors.workAuthStatus}
 								options={[
 									{ value: "citizen", label: "U.S. Citizen" },
 									{ value: "pr", label: "Permanent Resident (Green Card)" },
