@@ -29,8 +29,8 @@ const STEPS = [
 ];
 
 const INIT = {
-	firstName: "Syam Kumar", lastName: "Chintakayala", preferredName: "Ch Syam Kumar", dob: "2001-03-08", gender: "Male",
-	nationality: "United States", maritalStatus: "Married", personalEmail: "syamkumar6845@gmail.com", mobile: "+13328154761",
+	firstName: "", lastName: "", preferredName: "", dob: "", gender: "",
+	nationality: "", maritalStatus: "", personalEmail: "", mobile: "", alternativeNumber: "", 
 	currentAddress: "", permanentAddress: "",
 	ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "",
 	passportNumber: "", passportExpiry: "", countryOfIssue: "",
@@ -72,12 +72,12 @@ function FocusSelect({ value, onChange, children, error }) {
 	);
 }
 
-function FocusTextarea({ value, onChange, placeholder, rows = 3, error }) {
+function FocusTextarea({ value, onChange, placeholder, rows = 1, error }) {
 	const [focus, setFocus] = useState(false);
 	return (
 		<textarea value={value} onChange={onChange} placeholder={placeholder} rows={rows}
 			onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
-			style={{ ...s.input, resize: "vertical", minHeight: rows * 24, borderColor: error ? T.error : focus ? T.borderFocus : T.border, boxShadow: focus ? "0 0 0 3px rgba(26,60,52,0.08)" : "none" }}
+			style={{ ...s.input, resize: "vertical", minHeight: rows * 24, borderColor: error ? T.error : focus ? T.borderFocus : T.border, boxShadow: focus ? "0 0 0 3px rgba(26,60,52,0.08)" : "none", marginBottom: '20px' }}
 		/>
 	);
 }
@@ -105,7 +105,7 @@ function FileUpload({ label, files, onChange, accept, multiple = false, hint }) 
 		<div style={s.fileZone} onClick={() => ref.current.click()} className="file-zone">
 			<input ref={ref} type="file" accept={accept} multiple={multiple} style={{ display: "none" }}
 				onChange={e => onChange(multiple ? Array.from(e.target.files) : Array.from(e.target.files).slice(0, 1))} />
-			{files.length > 0 ? (
+			{files?.length > 0 ? (
 				<div style={s.fileList}>
 					<span style={{ fontSize: 22 }}>📎</span>
 					<div>
@@ -189,21 +189,21 @@ function validate(step, form) {
 	}
 	if (step === 2) {
 		req("ssn"); req("workAuthStatus"); req("passportNumber"); req("passportExpiry"); req("countryOfIssue");
-		if (!form.govIdFiles.length) e.govIdFiles = "Please upload at least one government ID";
+		if (!form.govIdFiles?.length) e.govIdFiles = "Please upload at least one government ID";
 		if (["visa", "opt"].includes(form.workAuthStatus)) { req("visaType"); req("visaExpiry"); }
 	}
 	if (step === 3) {
 		req("highestQualification"); req("degreeName"); req("universityName"); req("graduationYear");
-		if (!form.transcriptFiles.length) e.transcriptFiles = "Please upload your degree/transcript";
+		if (!form.transcriptFiles?.length) e.transcriptFiles = "Please upload your degree/transcript";
 	}
 	if (step === 4) {
 		req("joiningDate"); req("jobTitle"); req("department"); req("reportingManager"); req("workLocation");
 		req("employmentType"); req("taxFilingStatus"); req("bankName"); req("routingNumber"); req("accountNumber");
 	}
 	if (step === 5) {
-		if (!form.docResume.length) e.docResume = "Resume is required";
-		if (!form.docDegree.length) e.docDegree = "Degree certificate is required";
-		if (!form.docOfferLetter.length) e.docOfferLetter = "Offer letter acknowledgement is required";
+		if (!form.docResume?.length) e.docResume = "Resume is required";
+		if (!form.docDegree?.length) e.docDegree = "Degree certificate is required";
+		if (!form.docOfferLetter?.length) e.docOfferLetter = "Offer letter acknowledgement is required";
 	}
 	return {} //e;
 }
@@ -223,7 +223,7 @@ export default function OnboardingForm() {
 	const goNext = () => {
 		const e = validate(step, form);
 		setErrors(e);
-		if (!Object.keys(e).length) { setStep(s => s + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
+		if (!Object.keys(e)?.length) { setStep(s => s + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
 	};
 
 	const goBack = () => {
@@ -235,7 +235,7 @@ export default function OnboardingForm() {
 		console.log(form);
 
 		setErrors(e);
-		if (!Object.keys(e).length) {
+		if (!Object.keys(e)?.length) {
 			saveEmployeeData();
 			setSubmitted(true);
 		};
@@ -577,7 +577,7 @@ export default function OnboardingForm() {
 		);
 	}
 
-	const progress = ((step - 1) / (STEPS.length - 1)) * 100;
+	const progress = ((step - 1) / (STEPS?.length - 1)) * 100;
 
 	return (
 		<>
@@ -604,8 +604,8 @@ export default function OnboardingForm() {
 				{/* Main card */}
 				<div style={s.card} className="form-card">
 					<div style={s.cardHeader}>
-						<span style={s.cardStep}>Step {step} of {STEPS.length}</span>
-						<h2 style={s.cardTitle}>{STEPS[step - 1].label}</h2>
+						<span style={s.cardStep}>Step {step} of {STEPS?.length}</span>
+						<h2 style={s.cardTitle}>{STEPS?.[step - 1]?.label}</h2>
 					</div>
 
 					{/* ── Step 1 ── */}
@@ -624,7 +624,7 @@ export default function OnboardingForm() {
 								<Field label="Date of Birth" required error={errors.dob}>
 									<FocusInput type="date" value={form.dob} onChange={e => set("dob", e.target.value)} error={errors.dob} />
 								</Field>
-								<Field label="Gender (Optional)">
+								<Field label="Gender" required>
 									<FocusSelect value={form.gender} onChange={e => set("gender", e.target.value)}>
 										<option value="">Prefer not to say</option>
 										<option>Male</option>
@@ -635,46 +635,71 @@ export default function OnboardingForm() {
 								<Field label="Nationality / Citizenship" required error={errors.nationality}>
 									<FocusInput value={form.nationality} onChange={e => set("nationality", e.target.value)} placeholder="e.g. United States" error={errors.nationality} />
 								</Field>
-								<Field label="Marital Status (Optional)">
+								<Field label="Marital Status" required>
 									<FocusSelect value={form.maritalStatus} onChange={e => set("maritalStatus", e.target.value)}>
 										<option value="">Select</option>
 										<option>Single</option>
 										<option>Married</option>
+										<option>Divorced</option>
 									</FocusSelect>
 								</Field>
 								<Field label="Personal Email Address" required error={errors.personalEmail}>
 									<FocusInput type="email" value={form.personalEmail} onChange={e => set("personalEmail", e.target.value)} placeholder="your@email.com" error={errors.personalEmail} />
 								</Field>
+								<Field label="Alternative Email Address" required error={errors.personalEmail}>
+									<FocusInput type="email" value={form.alternativeEmail} onChange={e => set("alternativeEmail", e.target.value)} placeholder="your@email.com" error={errors.personalEmail} />
+								</Field>
 								<Field label="Mobile Number" required error={errors.mobile}>
 									<FocusInput value={form.mobile} onChange={e => set("mobile", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.mobile} />
 								</Field>
-							</Grid>
-							<Divider />
-							<Grid cols={1}>
-								<Field label="Current Residential Address" required error={errors.fullLegalName}>
-									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
-								</Field>
-							</Grid>
-							<Grid cols={2}>
-								<Field label="ZIP" required error={errors.fullLegalName}>
-									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
-								</Field>
-								<Field label="State" required error={errors.fullLegalName}>
-									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
+								<Field label="Alternative Contact Number" required error={errors.alternativeNumber}>
+									<FocusInput value={form.alternativeNumber} onChange={e => set("alternativeNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.alternativeNumber} />
 								</Field>
 							</Grid>
 							<Divider />
+							<Grid cols={2}>
+								<Field label="Emergency Contact Name" required error={errors.emergencyContactName}>
+									<FocusInput value={form.emergencyContactName} onChange={e => set("emergencyContactName", e.target.value)} placeholder="Emergency Contact Name" error={errors.emergencyContactName} />
+								</Field>
+								<Field label="Emergency Contact Number" required error={errors.emergencyNumber}>
+									<FocusInput value={form.emergencyNumber} onChange={e => set("emergencyNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.emergencyNumber} />
+								</Field>
+								<Field label="Relationship to employee" required error={errors.relationToEmployee}>
+									<FocusInput value={form.relationToEmployee} onChange={e => set("relationToEmployee", e.target.value)} placeholder="Relationship to employee" error={errors.relationToEmployee} />
+								</Field>
+							</Grid>
+							<Divider />
 							<Grid cols={1}>
-								<Field label="Permanent Address (if different from above)" required error={errors.fullLegalName}>
-									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Leave blank if same as above" error={errors.fullLegalName} />
+								<Field label="Current Residential Address" required error={errors.currentAddress} span>
+									<FocusTextarea value={form.currentAddress} onChange={e => set("currentAddress", e.target.value)} placeholder="Address Line 1" error={errors.currentAddress} />
 								</Field>
 							</Grid>
 							<Grid cols={2}>
-								<Field label="ZIP" required error={errors.fullLegalName}>
-									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
+								<Field label="City" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="City" error={errors.fullLegalName} />
 								</Field>
 								<Field label="State" required error={errors.fullLegalName}>
-									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="Street, City" error={errors.fullLegalName} />
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="State" error={errors.fullLegalName} />
+								</Field>
+								<Field label="ZIP" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="ZIP Code" error={errors.fullLegalName} />
+								</Field>
+							</Grid>
+							<Divider />
+							<Grid cols={1}>
+								<Field label="Permanent Residential Address" required error={errors.currentAddress} span>
+									<FocusTextarea value={form.currentAddress} onChange={e => set("currentAddress", e.target.value)} placeholder="Address Line 1" error={errors.currentAddress} />
+								</Field>
+							</Grid>
+							<Grid cols={2}>
+								<Field label="City" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="City" error={errors.fullLegalName} />
+								</Field>
+								<Field label="State" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="State" error={errors.fullLegalName} />
+								</Field>
+								<Field label="ZIP" required error={errors.fullLegalName}>
+									<FocusInput value={form.fullLegalName} onChange={e => set("fullLegalName", e.target.value)} placeholder="ZIP Code" error={errors.fullLegalName} />
 								</Field>
 							</Grid>
 							{/* <Grid cols={1}>
@@ -695,9 +720,6 @@ export default function OnboardingForm() {
 								<Field label="Social Security Number (SSN) / ITIN" required error={errors.ssn}>
 									<FocusInput value={form.ssn} onChange={e => set("ssn", e.target.value)} placeholder="XXX-XX-XXXX" error={errors.ssn} />
 								</Field>
-								<Field label="EAD / Work Permit Number">
-									<FocusInput value={form.eadNumber} onChange={e => set("eadNumber", e.target.value)} placeholder="If applicable" />
-								</Field>
 							</Grid>
 							<Divider />
 							<SecHead>Work Authorization Status</SecHead>
@@ -706,10 +728,10 @@ export default function OnboardingForm() {
 									{ value: "citizen", label: "U.S. Citizen" },
 									{ value: "pr", label: "Permanent Resident (Green Card)" },
 									{ value: "visa", label: "Visa Holder" },
-									{ value: "opt", label: "OPT / CPT / H-1B / L-1 / Other" },
+									// { value: "opt", label: "OPT / CPT / H-1B / L-1 / Other" },
 								]}
 							/>
-							{(form.workAuthStatus === "visa" || form.workAuthStatus === "opt") && (
+							{(form.workAuthStatus === "visa") && (
 								<>
 									<Divider />
 									<Grid cols={2}>
@@ -725,22 +747,50 @@ export default function OnboardingForm() {
 									</Grid>
 								</>
 							)}
+							{
+								(form.workAuthStatus === "pr" || form?.workAuthStatus === "visa") && (
+									<>
+										<Divider />
+										<SecHead>Passport Details</SecHead>
+										<Grid cols={3}>
+											<Field label="Passport Number" required error={errors.passportNumber}>
+												<FocusInput value={form.passportNumber} onChange={e => set("passportNumber", e.target.value)} placeholder="e.g. A12345678" error={errors.passportNumber} />
+											</Field>
+											<Field label="Country of Issue" required error={errors.countryOfIssue}>
+												<FocusInput value={form.countryOfIssue} onChange={e => set("countryOfIssue", e.target.value)} placeholder="e.g. United States" error={errors.countryOfIssue} />
+											</Field>
+											<Field label="Passport Expiry Date" required error={errors.passportExpiry}>
+												<FocusInput type="date" value={form.passportExpiry} onChange={e => set("passportExpiry", e.target.value)} error={errors.passportExpiry} />
+											</Field>
+											<Field label="I-94 Number (if applicable)">
+												<FocusInput value={form.i94} onChange={e => set("i94", e.target.value)} placeholder="11-digit number" />
+											</Field>
+										</Grid>
+									</>
+								)
+							}
 							<Divider />
-							<SecHead>Passport Details</SecHead>
-							<Grid cols={3}>
-								<Field label="Passport Number" required error={errors.passportNumber}>
-									<FocusInput value={form.passportNumber} onChange={e => set("passportNumber", e.target.value)} placeholder="e.g. A12345678" error={errors.passportNumber} />
-								</Field>
-								<Field label="Country of Issue" required error={errors.countryOfIssue}>
-									<FocusInput value={form.countryOfIssue} onChange={e => set("countryOfIssue", e.target.value)} placeholder="e.g. United States" error={errors.countryOfIssue} />
-								</Field>
-								<Field label="Passport Expiry Date" required error={errors.passportExpiry}>
-									<FocusInput type="date" value={form.passportExpiry} onChange={e => set("passportExpiry", e.target.value)} error={errors.passportExpiry} />
-								</Field>
-								<Field label="I-94 Number (if applicable)">
-									<FocusInput value={form.i94} onChange={e => set("i94", e.target.value)} placeholder="11-digit number" />
-								</Field>
-							</Grid>
+							<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+								{[
+									{ label: "Passport Copy", field: "docPassport", req: form?.workAuthStatus !== "citizen", hint: "Color scan preferred", span: true },
+									{ label: "SSN Card", field: "docSSN", req: true, hint: "Front side", span: true },
+									{ label: "Visa / Work Permit", field: "docVisa", req: form?.workAuthStatus !== "citizen", hint: "If applicable", span: true },
+								].map(({ label, field, req, hint, span }) => (
+									<div key={field} style={span ? { gridColumn: "1 / -1" } : {}}>
+										<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+											<span style={s.label}>
+												{label}
+											</span>
+											{req && <span style={{ fontSize: 10, fontWeight: 700, color: T.error, textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
+										</div>
+										<FileUpload label={`Upload ${label}`} files={form[field]}
+											onChange={v => { set(field, v); setErrors(e => ({ ...e, [field]: undefined })); }}
+											accept=".pdf,.jpg,.jpeg,.png" multiple hint={hint} />
+										<Err msg={errors[field]} />
+									</div>
+								))
+								}
+							</div>
 							{/* <Divider />
 							<SecHead>Government ID Documents</SecHead>
 							<FileUpload label="Upload Government ID(s)" files={form.govIdFiles}
@@ -780,9 +830,29 @@ export default function OnboardingForm() {
 								</Field>
 							</Grid>
 							<Divider />
-							<Field label="Previous Education Details (Optional)" span>
+							{/* <Field label="Previous Education Details (Optional)" span>
 								<FocusTextarea value={form.prevEducation} onChange={e => set("prevEducation", e.target.value)} placeholder="List any additional degrees, diplomas, or certifications" rows={3} />
-							</Field>
+							</Field> */}
+							<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+								{
+									[
+										{ label: "Latest Degree Certificate", field: "docDegree", req: true, hint: "Official copy" }
+									].map(({ label, field, req, hint, span }) => (
+										<div key={field} style={{ gridColumn: "1 / -1" }}>
+											<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+												<span style={s.label}>
+													Cancelled / Void Check
+												</span>
+												{req && <span style={{ fontSize: 10, fontWeight: 700, color: T.error, textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
+											</div>
+											<FileUpload label={`Upload ${label}`} files={form[field]}
+												onChange={v => { set(field, v); setErrors(e => ({ ...e, [field]: undefined })); }}
+												accept=".pdf,.jpg,.jpeg,.png" multiple hint={hint} />
+											<Err msg={errors[field]} />
+										</div>
+									))
+								}
+							</div>
 							{/* <Divider />
 							<SecHead>Academic Documents</SecHead>
 							<FileUpload label="Upload Degree Certificate / Official Transcript" files={form.transcriptFiles}
@@ -851,17 +921,52 @@ export default function OnboardingForm() {
 							<div style={{ ...s.infoBanner, marginBottom: 20 }}>
 								🔒 Your banking information is encrypted and stored securely. It will only be used for payroll processing.
 							</div>
-							<Grid cols={3}>
+							<Grid cols={2}>
+								<Field label="Account Holder Name" required error={errors.bankName}>
+									<FocusInput value={form.accountHolderName} onChange={e => set("accountHolderName", e.target.value)} placeholder="Full name as it appears on your bank account" error={errors.bankName} />
+								</Field>
 								<Field label="Bank Name" required error={errors.bankName}>
 									<FocusInput value={form.bankName} onChange={e => set("bankName", e.target.value)} placeholder="e.g. Chase, Wells Fargo" error={errors.bankName} />
 								</Field>
 								<Field label="Routing Number" required error={errors.routingNumber}>
 									<FocusInput value={form.routingNumber} onChange={e => set("routingNumber", e.target.value)} placeholder="9-digit routing number" error={errors.routingNumber} />
 								</Field>
+								<Field label="Confirm Routing Number" required error={errors.routingNumber}>
+									<FocusInput value={form.confirmRoutingNumber} onChange={e => set("confirmRoutingNumber", e.target.value)} placeholder="Confirm 9-digit routing number" error={errors.routingNumber} />
+								</Field>
 								<Field label="Account Number" required error={errors.accountNumber}>
 									<FocusInput value={form.accountNumber} onChange={e => set("accountNumber", e.target.value)} placeholder="Account number" error={errors.accountNumber} />
 								</Field>
+								<Field label="Confirm Account Number" required error={errors.accountNumber}>
+									<FocusInput value={form.confirmAccountNumber} onChange={e => set("confirmAccountNumber", e.target.value)} placeholder="Confirm account number" error={errors.accountNumber} />
+								</Field>
+								<Field label="Account Type" required>
+									<FocusSelect value={form.accountType} onChange={e => set("accountType", e.target.value)}>
+										<option value="">Select</option>
+										<option>Savings Account</option>
+										<option>Current Account</option>
+									</FocusSelect>
+								</Field>
 							</Grid>
+							<Divider />
+							<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+								{[
+									{ label: "Cancelled / Void Check", field: "docVoidCheck", req: true, hint: "Color scan preferred" }
+								].map(({ label, field, req, hint, span }) => (
+									<div key={field} style={{ gridColumn: "1 / -1" }}>
+										<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+											<span style={s.label}>
+												Cancelled / Void Check
+											</span>
+											{req && <span style={{ fontSize: 10, fontWeight: 700, color: T.error, textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
+										</div>
+										<FileUpload label={`Upload ${label}`} files={form[field]}
+											onChange={v => { set(field, v); setErrors(e => ({ ...e, [field]: undefined })); }}
+											accept=".pdf,.jpg,.jpeg,.png" multiple hint={hint} />
+										<Err msg={errors[field]} />
+									</div>
+								))}
+							</div>
 						</div>
 					)}
 
@@ -873,15 +978,10 @@ export default function OnboardingForm() {
 							</p>
 							<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
 								{[
-									{ label: "Passport Copy", field: "docPassport", req: false, hint: "Color scan preferred" },
-									{ label: "SSN Card", field: "docSSN", req: false, hint: "Front side" },
-									{ label: "Visa / Work Permit", field: "docVisa", req: false, hint: "If applicable" },
-									{ label: "Resume / CV", field: "docResume", req: true, hint: "Most recent version" },
-									{ label: "Latest Degree Certificate", field: "docDegree", req: true, hint: "Official copy" },
-									{ label: "Experience Letters", field: "docExperience", req: false, hint: "From previous employers" },
-									{ label: "Previous Payslips", field: "docPayslips", req: false, hint: "Last 3 months" },
+									{ label: "Resume / CV", field: "docResume", req: true, hint: "Most recent version", span: true },
 									{ label: "Offer Letter Acknowledgement", field: "docOfferLetter", req: true, hint: "Signed copy", span: true },
-									{ label: "Signed NDA / Policy Documents", field: "docNDA", req: false, hint: "If provided by HR", span: true },
+									{ label: "I-94 Document", field: "docI94", req: true, hint: "Color scan preferred", span: true },
+									{ label: "W4 Document", field: "docw4", req: true, hint: "Color scan preferred", span: true },
 								].map(({ label, field, req, hint, span }) => (
 									<div key={field} style={span ? { gridColumn: "1 / -1" } : {}}>
 										<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -939,12 +1039,16 @@ export default function OnboardingForm() {
 							</ReviewSection>
 							<ReviewSection title="Documents Uploaded">
 								{[
-									["Resume", form.docResume], ["Degree Certificate", form.docDegree],
-									["Passport", form.docPassport], ["SSN Card", form.docSSN],
+									["Resume", form.docResume],
+									["Degree Certificate", form.docDegree],
+									["Passport", form.docPassport],
+									["SSN Card", form.docSSN],
 									["Visa/Work Permit", form.docVisa], ["Experience Letters", form.docExperience],
-									["Payslips", form.docPayslips], ["Offer Letter", form.docOfferLetter],
+									["Payslips", form.docPayslips],
+									["Offer Letter", form.docOfferLetter],
 									["NDA/Policy Docs", form.docNDA],
-								].map(([label, files]) => files.length > 0 && (
+									["Cancelled/Void Check", form.docVoidCheck],
+								].map(([label, files]) => files?.length > 0 && (
 									<ReviewRow key={label} label={label} value={files.map(f => f.name).join(", ")} />
 								))}
 							</ReviewSection>
@@ -969,9 +1073,9 @@ export default function OnboardingForm() {
 				</div>
 
 				<p style={{ textAlign: "center", fontSize: 12, color: T.textLight, marginTop: 20 }}>
-					Step {step} of {STEPS.length} · Your progress is saved automatically
+					Step {step} of {STEPS?.length} · Your progress is saved automatically
 				</p>
-			</div>
+			</div >
 		</>
 	);
 }
