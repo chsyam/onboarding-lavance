@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { RotatingLines } from "react-loader-spinner";
+import Link from "next/link";
 
 // ─── Design tokens from Lavance LLC ───────────────────────────────────────────
 const T = {
@@ -36,7 +37,7 @@ const STEPS = [
 
 const INIT = {
 	firstName: "", lastName: "", preferredName: "", dob: "", gender: "",
-	nationality: "", maritalStatus: "", personalEmail: "", mobile: "", alternativeNumber: "",
+	nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "",
 	currentAddress: "", permanentAddress: "",
 	ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "",
 	passportNumber: "", passportExpiry: "", countryOfIssue: "",
@@ -54,123 +55,60 @@ const INIT = {
 };
 
 const modalStyles = {
-	overlay: {
-		display: "flex",
-		alignItems: "center",
-		justifyContent: "center",
-		height: "100vh",
-		backdropFilter: "blur(4px)",
-		backgroundColor: "rgba(0,0,0,0.4)",
-	},
-	card: {
-		background: "#fff",
-		borderRadius: "16px",
-		padding: "40px 36px 32px",
-		width: 360,
-		display: "flex",
-		flexDirection: "column",
-		alignItems: "center",
-		gap: "16px",
-		outline: "none",
-		boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-	},
-	iconWrap: {
-		display: "flex",
-		alignItems: "center",
-		justifyContent: "center",
-		flexDirection: "column",
-		margin: "20px auto",
-		textAlign: "center",
-		color: "#000",
-	},
-	iconInner: {
-		position: "absolute",
-		display: "flex",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	textWrap: {
-		textAlign: "center",
-	},
-	title: {
-		fontSize: "18px",
-		fontWeight: 600,
-		color: "#111",
-		margin: 0,
-	},
-	subtitle: {
-		fontSize: "14px",
-		color: "#666",
-		margin: "6px 0 0",
-		minHeight: 20,
-		animation: "fadeIn 0.3s ease",
-		"@keyframes fadeIn": {
-			from: { opacity: 0, transform: "translateY(4px)" },
-			to: { opacity: 1, transform: "translateY(0)" },
-		},
-	},
-	barTrack: {
-		width: "100%",
-		height: 6,
-		background: "#f0f0f0",
-		borderRadius: 99,
-		overflow: "hidden",
-		marginTop: 4,
-	},
-	barFill: {
-		height: "100%",
-		background: "linear-gradient(90deg, #1D9E75, #34d399)",
-		borderRadius: 99,
-		transition: "width 0.04s linear",
-	},
-	progressLabel: {
-		fontSize: 12,
-		color: "#999",
-		alignSelf: "flex-end",
-		marginTop: -8,
-	},
-	dots: {
-		display: "flex",
-		gap: "8px",
-		marginTop: 4,
-	},
-	dot: {
-		width: 8,
-		height: 8,
-		borderRadius: "50%",
-		transition: "all 0.3s ease",
-	},
+	position: 'absolute',
+	top: '50%',
+	left: '50%',
+	transform: 'translate(-50%, -50%)',
+	width: 400,
+	bgcolor: 'background.paper',
+	boxShadow: 24,
+	p: 4,
+	color: 'text.primary',
+	border: "none",
+	outline: "none",
+	borderRadius: 2,
+	fontFamily: T.fontSans,
+	textAlign: "center",
+	display: "flex",
+	flexDirection: "column",
+	justifyContent: "center",
+	alignItems: "center",
 };
 
-function TokenValidation({ open }) {
-
+function TokenValidation({ open, tokenError }) {
 	return (
 		<div>
 			<Modal open={open}>
-				<Box sx={modalStyles.overlay}>
-					<Box sx={modalStyles.card}>
-
-						{/* Icon circle */}
-						<Box sx={modalStyles.iconWrap}>
-							<RotatingLines
-								visible={true}
-								height="96"
-								width="96"
-								color="grey"
-								strokeWidth="5"
-								animationDuration="1"
-								ariaLabel="rotating-lines-loading"
-								wrapperStyle={{}}
-								wrapperClass=""
-							/>
+				<Box sx={modalStyles}>
+					{
+						tokenError ? (
 							<div style={{ margin: "5px auto" }}>
-								Validating your token. Please wait a moment...
+								Oops! This link appears to be invalid or has expired. Please reach out to your HR administrator or send out an email to
+								<Link href="mailto:hr@lavancegroup.com" style={{ margin: "auto 5px", color: "blue" }}>hr@lavancegroup.com</Link>
+								for a new access link.
 							</div>
-						</Box>
-					</Box>
+						) : (
+							<Box sx={modalStyles}>
+								<RotatingLines
+									visible={true}
+									height="96"
+									width="96"
+									color="grey"
+									strokeWidth="5"
+									animationDuration="1"
+									ariaLabel="rotating-lines-loading"
+									wrapperStyle={{}}
+									wrapperClass=""
+								/>
+								<div style={{ margin: "5px auto" }}>
+									Validating your token. Please wait a moment...
+								</div>
+							</Box>
+						)
+					}
 				</Box>
 			</Modal>
-		</div>
+		</div >
 	);
 }
 
@@ -324,9 +262,13 @@ function ReviewSection({ title, children }) {
 // ─── Validation ───────────────────────────────────────────────────────────────
 function validate(step, form) {
 	const e = {};
-	const req = (f, msg) => { if (!form[f]?.toString().trim()) e[f] = msg || "This field is required"; };
+	const req = (f, msg) => {
+		if (!form[f]?.toString().trim())
+			e[f] = msg || "This field is required";
+	};
+
 	if (step === 1) {
-		req("fullLegalName"); req("dob"); req("nationality"); req("mobile"); req("currentAddress");
+		req("firstName"); req("lastName"); req("dob"); req("nationality"); req("mobile"); req("currentAddress");
 		if (!form.personalEmail || !/\S+@\S+\.\S+/.test(form.personalEmail)) e.personalEmail = "Enter a valid email address";
 	}
 	if (step === 2) {
@@ -358,6 +300,7 @@ export default function OnboardingForm() {
 	const [submitted, setSubmitted] = useState(false);
 	const [isSame, setIsSame] = useState(false);
 	const [open, setOpen] = useState(true);
+	const [tokenError, setTokenError] = useState(false);
 
 	const set = (field, value) => {
 		setForm(f => ({ ...f, [field]: value }));
@@ -375,6 +318,9 @@ export default function OnboardingForm() {
 	};
 
 	const validateToken = async (token) => {
+		if (!token) {
+			throw new Error("No token provided");
+		}
 		const response = await fetch(`/api/admin/token_validation/${token}`, {
 			method: "GET",
 			headers: {
@@ -382,25 +328,36 @@ export default function OnboardingForm() {
 			},
 		});
 		const data = await response.json();
-		console.log(data);
+		// console.log(data);
 		return data;
 	}
 
 	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		const urlToken = params.get('token');
+		let isMounted = true;
 
-		if (!urlToken) return;
+		const params = new URLSearchParams(window.location.search);
+		const urlToken = params.get("token");
 
 		validateToken(urlToken).then((data) => {
-			if (data?.data) {
+			if (isMounted && data?.data) {
 				const token_user = data.data;
 				set("firstName", token_user?.first_name);
 				set("lastName", token_user?.last_name);
 				set("personalEmail", token_user?.email);
 				setOpen(false);
+				setTokenError(false);
+			} else {
+				console.log("Token validation failed:", data?.message || "Unknown error");
+				setTokenError(true);
 			}
+		}).catch((err) => {
+			console.log("Token validation error:", err);
+			setTokenError(true);
 		});
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	const handleSubmit = () => {
@@ -753,7 +710,7 @@ export default function OnboardingForm() {
 
 	return (
 		<>
-			<TokenValidation open={open} />
+			<TokenValidation open={open} tokenError={tokenError} />
 			<style>{css}</style>
 			<div style={s.page}>
 
@@ -785,19 +742,19 @@ export default function OnboardingForm() {
 					{step === 1 && (
 						<div className="step-anim">
 							<Grid cols={2}>
-								<Field label="First Name" required error={errors.fullLegalName}>
-									<FocusInput value={form.firstName} onChange={e => set("firstName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.fullLegalName} />
+								<Field label="First Name" required error={errors.firstName}>
+									<FocusInput value={form.firstName} onChange={e => set("firstName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.firstName} />
 								</Field>
-								<Field label="Last Name" required error={errors.fullLegalName}>
-									<FocusInput value={form.lastName} onChange={e => set("lastName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.fullLegalName} />
+								<Field label="Last Name" required error={errors.lastName}>
+									<FocusInput value={form.lastName} onChange={e => set("lastName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.lastName} />
 								</Field>
-								<Field label="Preferred / Display Name">
-									<FocusInput value={form.preferredName} onChange={e => set("preferredName", e.target.value)} placeholder="What you'd like to be called" />
+								<Field label="Preferred / Display Name" error={errors.preferredName}>
+									<FocusInput value={form.preferredName} onChange={e => set("preferredName", e.target.value)} placeholder="What you'd like to be called" error={errors.preferredName} />
 								</Field>
 								<Field label="Date of Birth" required error={errors.dob}>
 									<FocusInput type="date" value={form.dob} onChange={e => set("dob", e.target.value)} error={errors.dob} />
 								</Field>
-								<Field label="Gender" required>
+								<Field label="Gender" required error={errors.gender}>
 									<FocusSelect value={form.gender} onChange={e => set("gender", e.target.value)}>
 										<option value="">Prefer not to say</option>
 										<option>Male</option>
@@ -808,7 +765,7 @@ export default function OnboardingForm() {
 								<Field label="Nationality / Citizenship" required error={errors.nationality}>
 									<FocusInput value={form.nationality} onChange={e => set("nationality", e.target.value)} placeholder="e.g. United States" error={errors.nationality} />
 								</Field>
-								<Field label="Marital Status" required>
+								<Field label="Marital Status" required error={errors.maritalStatus}>
 									<FocusSelect value={form.maritalStatus} onChange={e => set("maritalStatus", e.target.value)}>
 										<option value="">Select</option>
 										<option>Single</option>
@@ -819,8 +776,8 @@ export default function OnboardingForm() {
 								<Field label="Personal Email Address" required error={errors.personalEmail}>
 									<FocusInput type="email" value={form.personalEmail} onChange={e => set("personalEmail", e.target.value)} placeholder="your@email.com" error={errors.personalEmail} />
 								</Field>
-								<Field label="Alternative Email Address" required error={errors.personalEmail}>
-									<FocusInput type="email" value={form.alternativeEmail} onChange={e => set("alternativeEmail", e.target.value)} placeholder="your@email.com" error={errors.personalEmail} />
+								<Field label="Alternative Email Address" required error={errors.alternativeEmail}>
+									<FocusInput type="email" value={form.alternativeEmail} onChange={e => set("alternativeEmail", e.target.value)} placeholder="your@email.com" error={errors.alternativeEmail} />
 								</Field>
 								<Field label="Mobile Number" required error={errors.mobile}>
 									<FocusInput value={form.mobile} onChange={e => set("mobile", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.mobile} />
@@ -1178,7 +1135,8 @@ export default function OnboardingForm() {
 								Please review all the information you have provided before submitting. You may go back to any previous step to make corrections.
 							</p>
 							<ReviewSection title="Personal Information">
-								<ReviewRow label="Full Legal Name" value={form.fullLegalName} />
+								<ReviewRow label="First Name" value={form.firstName} />
+								<ReviewRow label="Last Name" value={form.lastName} />
 								<ReviewRow label="Preferred Name" value={form.preferredName} />
 								<ReviewRow label="Date of Birth" value={form.dob} />
 								<ReviewRow label="Nationality" value={form.nationality} />
