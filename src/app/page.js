@@ -36,7 +36,7 @@ const STEPS = [
 ];
 
 const INIT = {
-	userId: "", employeeId: "", firstName: "", lastName: "", preferredName: "", dob: "", gender: "", nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "", emergencyContactName: "", emergencyNumber: "", relationToEmployee: "", residential_address: "", residential_city: "", residential_state: "", residential_zip_code: "", residential_country: "", is_address_same: null, permanent_address: "", permanent_city: "", permanent_state: "", permanent_zip_code: "", permanent_country: "", ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "", passportNumber: "", passportExpiry: "", countryOfIssue: "", i94: "", highestQualification: "", degreeName: "", specialization: "", universityName: "", graduationYear: "", gpa: "", bankName: "", routingNumber: "", accountNumber: "", docPassport: [], docSSN: [], docVisa: [], docDegree: [], docResume: [], docVoidCheck: [], docI94: [], docw4: [], docResume: [], docOfferLetter: [],
+	userId: "", employeeId: "", firstName: "", lastName: "", preferredName: "", dob: "", gender: "", nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "", emergencyContactName: "", emergencyNumber: "", relationToEmployee: "", residential_address: "", residential_city: "", residential_state: "", residential_zip_code: "", residential_country: "", is_address_same: null, permanent_address: "", permanent_city: "", permanent_state: "", permanent_zip_code: "", permanent_country: "", ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "", passportNumber: "", passportExpiry: "", countryOfIssue: "", i94: "", highestQualification: "", degreeName: "", specialization: "", universityName: "", graduationYear: "", gpa: "", accountHolderName: "", bankName: "", routingNumber: "", confirmRoutingNumber: "", accountNumber: "", confirmAccountNumber: "", docPassport: null, docSSN: null, docVisa: null, docDegree: null, docVoidCheck: null, docI94: null, docw4: null, docOfferLetter: null, passport_url: "", ssn_url: "", visa_url: "", degree_url: "", void_check_url: "", i94_url: "", w4_url: "", offer_letter_url: "",
 };
 
 const modalStyles = {
@@ -167,17 +167,17 @@ function RadioGroup({ options, value, onChange, error }) {
 	);
 }
 
-function FileUpload({ label, files, onChange, accept, multiple = false, hint }) {
+function FileUpload({ label, file, onChange, accept, hint }) {
 	const ref = useRef();
 	return (
 		<div style={s.fileZone} onClick={() => ref.current.click()} className="file-zone">
-			<input ref={ref} type="file" accept={accept} multiple={multiple} style={{ display: "none" }}
-				onChange={e => onChange(multiple ? Array.from(e.target.files) : Array.from(e.target.files).slice(0, 1))} />
-			{files?.length > 0 ? (
+			<input ref={ref} type="file" accept={accept} style={{ display: "none" }}
+				onChange={e => onChange(e.target.files[0] ?? null)} />
+			{file ? (
 				<div style={s.fileList}>
 					<span style={{ fontSize: 22 }}>📎</span>
 					<div>
-						{files.map((f, i) => <p key={i} style={s.fileName}>{f.name}</p>)}
+						<p style={s.fileName}>{file.name}</p>
 						<p style={s.fileChange}>Click to change</p>
 					</div>
 				</div>
@@ -233,19 +233,32 @@ function ReviewSection({ title, children }) {
 	);
 }
 
-// function LoadingScreen() {
-// 	return (
-// 		<div>
-// 			<Backdrop
-// 				sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
-// 				open={open}
-// 				onClick={handleClose}
-// 			>
-// 				<CircularProgress color="inherit" />
-// 			</Backdrop>
-// 		</div>
-// 	);
-// }
+function LoadingScreen({ isLoading }) {
+	return (
+		<div>
+			<Modal open={isLoading}>
+				<Box sx={modalStyles}>
+					<Box sx={modalStyles}>
+						<RotatingLines
+							visible={true}
+							height="96"
+							width="96"
+							color="grey"
+							strokeWidth="5"
+							animationDuration="1"
+							ariaLabel="rotating-lines-loading"
+							wrapperStyle={{}}
+							wrapperClass=""
+						/>
+						<div style={{ margin: "5px auto" }}>
+							Saving the data. Please wait a moment...
+						</div>
+					</Box>
+				</Box>
+			</Modal>
+		</div>
+	);
+}
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 function validate(step, form) {
@@ -253,59 +266,55 @@ function validate(step, form) {
 	const req = (f, msg) => {
 		if (!form[f]?.toString().trim())
 			e[f] = msg || "This field is required";
-		console.log(e)
 	};
 
 	if (step === 1) {
-		// req("firstName"); req("lastName"); req("gender"); req("dob"); req("nationality"); req("maritalStatus"); req("personalEmail"); req("mobileNumber"); req("emergencyNumber"); req("emergencyContactName"); req("relationToEmployee"); req("residential_address"); req("residential_city"); req("residential_state"); req("residential_zip_code"); req("is_address_same");
-		// if (!form?.is_address_same) {
-		// 	req("permanent_address");
-		// 	req("permanent_city");
-		// 	req("permanent_state");
-		// 	req("permanent_zip_code");
-		// }
-		// if (!form.personalEmail || !/\S+@\S+\.\S+/.test(form.personalEmail)) e.personalEmail = "Enter a valid email address";
+		req("firstName"); req("lastName"); req("gender"); req("dob"); req("nationality"); req("maritalStatus"); req("personalEmail"); req("mobileNumber"); req("emergencyNumber"); req("emergencyContactName"); req("relationToEmployee"); req("residential_address"); req("residential_city"); req("residential_state"); req("residential_zip_code"); req("is_address_same");
+		if (!form?.is_address_same) {
+			req("permanent_address");
+			req("permanent_city");
+			req("permanent_state");
+			req("permanent_zip_code");
+		}
+		if (!form.personalEmail || !/\S+@\S+\.\S+/.test(form.personalEmail)) e.personalEmail = "Enter a valid email address";
 	}
 	if (step === 2) {
-		// req("ssn"); req("workAuthStatus");
+		req("ssn"); req("workAuthStatus");
 
-		// if (form?.workAuthStatus === "visa") {
-		// 	req("visaType"); req("visaExpiry");
-		// }
+		if (form?.workAuthStatus === "visa") {
+			req("visaType"); req("visaExpiry");
+		}
 
-		// if (["visa", "pr"].includes(form.workAuthStatus)) {
-		// 	req("passportNumber"); req("passportExpiry"); req("countryOfIssue");
-		// }
+		if (["visa", "pr"].includes(form.workAuthStatus)) {
+			req("passportNumber"); req("passportExpiry"); req("countryOfIssue");
+		}
 
-		// if (!form.docPassport?.length)
-		// 	e.docPassport = "Please upload passport copy";
-		// if (!form.docSSN?.length)
-		// 	e.docSSN = "Please upload SSN card copy";
-		// if (!form.docVisa?.length)
-		// 	e.docVisa = "Please upload visa copy";
+		if (!form?.docPassport)
+			e.docPassport = "Please upload passport copy";
+		if (!form?.docSSN)
+			e.docSSN = "Please upload SSN card copy";
+		if (!form?.docVisa)
+			e.docVisa = "Please upload visa copy";
 	}
 	if (step === 3) {
-		// req("highestQualification"); req("degreeName"); req("universityName"); req("graduationYear"); req("gpa"); req("specialization");
-		// if (!form.docDegree?.length)
-		// 	e.docDegree = "Please upload your latest degree certificate or transcript";
+		req("highestQualification"); req("degreeName"); req("universityName"); req("graduationYear"); req("gpa"); req("specialization");
+		if (!form?.docDegree)
+			e.docDegree = "Please upload your latest degree certificate or transcript";
 	}
 	if (step === 4) {
-		// req("accountHolderName"); req("bankName"); req("routingNumber"); req("confirmRoutingNumber"); req("accountNumber"); req("confirmAccountNumber"); req("accountType");
-		// if (!form.docVoidCheck?.length)
-		// 	e.docVoidCheck = "Please upload Void/Cancellation check";
+		req("accountHolderName"); req("bankName"); req("routingNumber"); req("confirmRoutingNumber"); req("accountNumber"); req("confirmAccountNumber"); req("accountType");
+		if (!form?.docVoidCheck)
+			e.docVoidCheck = "Please upload Void/Cancellation check";
 	}
 	if (step === 5) {
-		if (!form.docI94?.length)
+		if (!form?.docI94)
 			e.docI94 = "I-94 document is required";
-		if (!form.docw4?.length)
+		if (!form?.docw4)
 			e.docw4 = "W4 document is required";
-		if (!form.docDegree?.length)
-			e.docDegree = "Degree certificate is required";
-		if (!form.docOfferLetter?.length)
+		if (!form?.docOfferLetter)
 			e.docOfferLetter = "Offer letter acknowledgement is required";
-		// if (!form.docResume?.length)
-		// 	e.docResume = "Resume is required";
 	}
+
 	return e || {};
 }
 
@@ -317,6 +326,7 @@ export default function OnboardingForm() {
 	const [submitted, setSubmitted] = useState(false);
 	const [isSame, setIsSame] = useState(false);
 	const [open, setOpen] = useState(true);
+	const [isLoading, setIsLoading] = useState(false);
 	const [tokenError, setTokenError] = useState(false);
 
 	const set = (field, value) => {
@@ -358,7 +368,7 @@ export default function OnboardingForm() {
 		validateToken(urlToken).then((data) => {
 			if (isMounted && data?.data) {
 				const token_user = data.data;
-				console.log("Token validated successfully for user:", token_user);
+				// console.log("Token validated successfully for user:", token_user);
 				set("firstName", token_user?.first_name);
 				set("lastName", token_user?.last_name);
 				set("personalEmail", token_user?.email);
@@ -380,14 +390,15 @@ export default function OnboardingForm() {
 		};
 	}, []);
 
-	const handleSubmit = () => {
+	const handleSubmit = async () => {
 		const e = validate(step, form);
-		console.log(form);
-
 		setErrors(e);
+
 		if (!Object.keys(e)?.length) {
-			saveEmployeeData();
-			setSubmitted(true);
+			setIsLoading(true);
+			await saveEmployeeData();
+			setIsLoading(false);
+			// setSubmitted(true);
 		};
 	};
 
@@ -419,7 +430,33 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const saveAddressInfo = async () => {
+	const sendSubmissionSuccessEmail = async (candidate_email, first_name, last_name) => {
+		try {
+			const response = await fetch("/api/emails/onboarding/submission-success", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					candidateEmail: candidate_email,
+					candidateName: `${first_name} ${last_name}`,
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				console.log("Email sent successfully", data);
+			} else {
+				console.error("Failed", data);
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
+
+	const saveAddressInfo = async (employeeId) => {
+		console.log(form);
 		try {
 			const response = await fetch(`/api/employees/address/`, {
 				method: "POST",
@@ -427,13 +464,13 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					residential_address: form?.residential_address || "",
 					residential_city: form?.residential_city || "",
 					residential_state: form?.residential_state || "",
 					residential_zip_code: form?.residential_zip_code || "",
 					residential_country: form?.residential_country || "",
-					is_address_same: form?.isSame,
+					is_address_same: form?.is_address_same,
 					permanent_address: form?.permanent_address || "",
 					permanent_city: form?.permanent_city || "",
 					permanent_state: form?.permanent_state || "",
@@ -448,7 +485,7 @@ export default function OnboardingForm() {
 				console.log("Address info saved successfully", data.insertId);
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: data.insertId,
 					message: "Address info saved successfully"
 				}
@@ -456,7 +493,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: null,
 					message: data.error || "Failed to save address info"
 				}
@@ -466,7 +503,7 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const saveEducationInfo = async () => {
+	const saveEducationInfo = async (employeeId) => {
 		try {
 			const response = await fetch(`/api/employees/education/`, {
 				method: "POST",
@@ -474,7 +511,7 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					highestQualification: form?.highestQualification || "",
 					degreeName: form?.degreeName || "",
 					specialization: form?.specialization || "",
@@ -490,7 +527,7 @@ export default function OnboardingForm() {
 				console.log("Education info saved successfully", data.insertId);
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: data.insertId,
 					message: "Education info saved successfully"
 				}
@@ -498,7 +535,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: null,
 					message: data.error || "Failed to save education info"
 				}
@@ -508,7 +545,7 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const savePayrollTaxInfo = async () => {
+	const savePayrollTaxInfo = async (employeeId) => {
 		try {
 			const response = await fetch(`/api/employees/payroll_tax_info/`, {
 				method: "POST",
@@ -516,7 +553,7 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					accountHolderName: form?.accountHolderName || "",
 					bankName: form?.bankName || "",
 					routingNumber: form?.routingNumber || "",
@@ -528,10 +565,10 @@ export default function OnboardingForm() {
 			const data = await response.json();
 
 			if (response.ok) {
-				console.log("Payroll & Tax info saved successfully", data.insertId);
+				console.log("Payroll & Tax info saved successfully");
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: data.insertId,
 					message: "Payroll & Tax info saved successfully"
 				}
@@ -539,7 +576,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: null,
 					message: data.error || "Failed to save payroll & tax info"
 				}
@@ -549,7 +586,7 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const saveWorkAuthorizationInfo = async () => {
+	const saveWorkAuthorizationInfo = async (employeeId) => {
 		try {
 			const response = await fetch(`/api/employees/work_authorization/`, {
 				method: "POST",
@@ -557,7 +594,7 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					ssn: form?.ssn || "",
 					work_auth_status: form?.workAuthStatus || "",
 					visaType: form?.visaType || "",
@@ -572,10 +609,10 @@ export default function OnboardingForm() {
 			const data = await response.json();
 
 			if (response.ok) {
-				console.log("Work Authorization info saved successfully", data.insertId);
+				console.log("Work Authorization info saved successfully");
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: data.insertId,
 					message: "Work Authorization info saved successfully"
 				}
@@ -583,7 +620,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: null,
 					message: data.error || "Failed to save work authorization info"
 				}
@@ -593,7 +630,44 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const saveDocumentsInfo = async () => {
+	const saveDocumentsInfo = async (employeeId) => {
+		try {
+			await Promise.all(
+				[["docPassport", "passport_url"], ["docSSN", "ssn_url"], ["docVisa", "visa_url"], ["docDegree", "degree_url"], ["docVoidCheck", "void_check_url"], ["docI94", "i94_url"], ["docw4", "w4_url"], ["docOfferLetter", "offer_letter_url"]]?.map(async ([field, url]) => {
+					try {
+						const file = form[field] || null;
+
+						if (!file) {
+							console.log("No file provided for", field);
+							return;
+						}
+
+						const formData = new FormData();
+						formData.append("file", file);
+						formData.append("employee_id", form?.employeeId || "");
+
+						const fileUploadResponse = await fetch("/api/upload", {
+							method: "POST",
+							body: formData,
+						});
+
+						if (!fileUploadResponse.ok) {
+							throw new Error(`Upload failed for ${field}: ${fileUploadResponse.statusText}`);
+						}
+
+						const data = await fileUploadResponse.json();
+						console.log(`${field} uploaded:`, data.fileUrl);
+						set(url, data.fileUrl);
+					} catch (err) {
+						console.error(`Error uploading ${field}:`, err.message);
+						throw err;
+					}
+				})
+			);
+		} catch (error) {
+			console.error("Error uploading documents:", error);
+		}
+
 		try {
 			const response = await fetch(`/api/employees/documents/`, {
 				method: "POST",
@@ -601,28 +675,25 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: form?.employeeId || null,
-					passport_url: "",
-					ssn_url: "",
-					work_permit_url: "",
-					resume_url: "",
-					latest_degree_certificate_url: "",
-					experience_letter_url: "",
-					previous_payslip_1_url: "",
-					previous_payslip_2_url: "",
-					previous_payslip_3_url: "",
-					offer_acknowledgement_url: "",
-					signed_nda_url: "",
+					employeeId: employeeId,
+					passport_url: form?.passport_url || "",
+					visa_url: form?.visa_url || "",
+					ssn_url: form?.ssn_url || "",
+					void_check_url: form?.void_check_url || "",
+					i94_url: form?.i94_url || "",
+					w4_url: form?.w4_url || "",
+					latest_degree_certificate_url: form?.degree_url || "",
+					offer_acknowledgement_url: form?.offer_letter_url || "",
 				}),
 			});
 
 			const data = await response.json();
 
 			if (response.ok) {
-				console.log("Documents info saved successfully", data.insertId);
+				console.log("Documents info saved successfully");
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: data.insertId,
 					message: "Documents info saved successfully"
 				}
@@ -630,7 +701,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: form?.employeeId || null,
+					employeeId: employeeId,
 					insertId: null,
 					message: data.error || "Failed to save documents info"
 				}
@@ -667,9 +738,10 @@ export default function OnboardingForm() {
 			});
 
 			const data = await response.json();
+			console.log("Personal info response:", data);
 
 			if (response.ok && data.insertId) {
-				console.log("Personal info saved successfully", data.insertId);
+				console.log("Personal info saved successfully");
 
 				const address_result = await saveAddressInfo(data.insertId);
 				if (!address_result?.insertId) {
@@ -698,7 +770,7 @@ export default function OnboardingForm() {
 
 				if (data?.insertId && address_result?.insertId && education_result?.insertId && work_authorization_result?.insertId && payroll_tax_result?.insertId && documents_result?.insertId) {
 					console.log("All info saved successfully");
-					await sendOnboardingEmail();
+					await sendSubmissionSuccessEmail(form?.personalEmail, form?.firstName, form?.lastName);
 				} else {
 					console.error("Some info failed to save.")
 				}
@@ -747,6 +819,7 @@ export default function OnboardingForm() {
 	return (
 		<>
 			<TokenValidation open={open} tokenError={tokenError} />
+			<LoadingScreen isLoading={isLoading} />
 			<style>{css}</style>
 			<div style={s.page}>
 
@@ -947,9 +1020,9 @@ export default function OnboardingForm() {
 											</span>
 											{req && <span style={{ fontSize: 10, fontWeight: 700, color: T.error, textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
 										</div>
-										<FileUpload label={`Upload ${label}`} files={form[field]}
+										<FileUpload label={`Upload ${label}`} file={form[field]}
 											onChange={v => { set(field, v); setErrors(e => ({ ...e, [field]: undefined })); }}
-											accept=".pdf,.jpg,.jpeg,.png" multiple hint={hint} />
+											accept=".pdf,.jpg,.jpeg,.png" hint={hint} />
 										<Err msg={errors[field]} />
 									</div>
 								))
@@ -1000,9 +1073,9 @@ export default function OnboardingForm() {
 												</span>
 												{req && <span style={{ fontSize: 10, fontWeight: 700, color: T.error, textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
 											</div>
-											<FileUpload label={`Upload ${label}`} files={form[field]}
+											<FileUpload label={`Upload ${label}`} file={form[field]}
 												onChange={v => { set(field, v); setErrors(e => ({ ...e, [field]: undefined })); }}
-												accept=".pdf,.jpg,.jpeg,.png" multiple hint={hint} />
+												accept=".pdf,.jpg,.jpeg,.png" hint={hint} />
 											<Err msg={errors[field]} />
 										</div>
 									))
@@ -1057,9 +1130,9 @@ export default function OnboardingForm() {
 											</span>
 											{req && <span style={{ fontSize: 10, fontWeight: 700, color: T.error, textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
 										</div>
-										<FileUpload label={`Upload ${label}`} files={form[field]}
+										<FileUpload label={`Upload ${label}`} file={form[field]}
 											onChange={v => { set(field, v); setErrors(e => ({ ...e, [field]: undefined })); }}
-											accept=".pdf,.jpg,.jpeg,.png" multiple hint={hint} />
+											accept=".pdf,.jpg,.jpeg,.png" hint={hint} />
 										<Err msg={errors[field]} />
 									</div>
 								))}
@@ -1078,16 +1151,15 @@ export default function OnboardingForm() {
 									{ label: "I-94 Document", field: "docI94", req: true, hint: "Color scan preferred", span: true },
 									{ label: "W4 Document", field: "docw4", req: true, hint: "Color scan preferred", span: true },
 									{ label: "Offer Letter Acknowledgement", field: "docOfferLetter", req: true, hint: "Signed copy", span: true },
-									// { label: "Resume / CV", field: "docResume", req: true, hint: "Most recent version", span: true },
 								].map(({ label, field, req, hint, span }) => (
 									<div key={field} style={span ? { gridColumn: "1 / -1" } : {}}>
 										<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
 											<span style={s.label}>{label}</span>
 											{req && <span style={{ fontSize: 10, fontWeight: 700, color: T.error, textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
 										</div>
-										<FileUpload label={`Upload ${label}`} files={form[field]}
+										<FileUpload label={`Upload ${label}`} file={form[field]}
 											onChange={v => { set(field, v); setErrors(e => ({ ...e, [field]: undefined })); }}
-											accept=".pdf,.jpg,.jpeg,.png" multiple hint={hint} />
+											accept=".pdf,.jpg,.jpeg,.png" hint={hint} />
 										<Err msg={errors[field]} />
 									</div>
 								))}
@@ -1170,9 +1242,8 @@ export default function OnboardingForm() {
 									["I-94 Document", form.docI94],
 									["W4 Document", form.docw4],
 									["Offer Letter", form.docOfferLetter],
-									// ["Resume", form.docResume],
-								].map(([label, files]) => files?.length > 0 && (
-									<ReviewRow key={label} label={label} value={files.map(f => f.name).join(", ")} />
+								].map(([label, file]) => file && (
+									<ReviewRow key={label} label={label} value={file?.name} />
 								))}
 							</ReviewSection>
 							<div style={s.infoBanner}>

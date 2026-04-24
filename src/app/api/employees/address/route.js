@@ -8,7 +8,7 @@ export async function POST(request) {
 
     try {
         const [result] = await pool.execute(
-            'INSERT INTO address (employee_id, residential_address, residential_city, residential_state, residential_zip_code, residential_country, is_address_same, permanent_address, permanent_city, permanent_state, permanent_zip_code, permanent_country, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO address (employee_id, residential_address, residential_city, residential_state, residential_zip_code, residential_country, is_address_same, permenant_address, permanent_city, permanent_state, permanent_zip_code, permanent_country, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [employeeId, residential_address, residential_city, residential_state, residential_zip_code, residential_country, is_address_same, permanent_address, permanent_city, permanent_state, permanent_zip_code, permanent_country, new Date(), new Date()]
         );
 

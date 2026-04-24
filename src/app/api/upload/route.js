@@ -13,21 +13,21 @@ export async function POST(req) {
 	try {
 		const formData = await req.formData();
 		const file = formData.get("file");
+		const employee_id = formData.get("employee_id");
 
-		if (!file) {
+		if (!file || typeof file === "string") {
 			return NextResponse.json(
-				{ error: "No file uploaded" },
+				{ error: "No valid file uploaded — received string instead of File" },
 				{ status: 400 }
 			);
 		}
 
-		const bytes = await file.arrayBuffer();
+		const bytes = await file?.arrayBuffer();
 		const buffer = Buffer.from(bytes);
 
-		const fileName = `${Date.now()}-${file.name}`;
-		const safeName = fileName.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+		const safeName = `${Date.now()}-${file.name}`.replace(/[^a-zA-Z0-9.\-_]/g, "_");
 		const uuid = crypto.randomUUID();
-		const s3Key = `documents/1/121/${uuid}-${safeName}`;
+		const s3Key = `documents/${employee_id || 'unassigned'}/${uuid}-${safeName}`;
 
 		await s3.send(
 			new PutObjectCommand({
@@ -38,7 +38,9 @@ export async function POST(req) {
 			})
 		);
 
-		const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/documents/${fileName}`;
+		const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
+
+		console.log(`File uploaded successfully: ${fileUrl}`);
 
 		return NextResponse.json({
 			success: true,
