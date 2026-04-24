@@ -36,14 +36,7 @@ const STEPS = [
 ];
 
 const INIT = {
-	firstName: "", lastName: "", preferredName: "", dob: "", gender: "",
-	nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "", emergencyContactName: "", emergencyNumber: "", relationToEmployee: "", residential_address: "", residential_city: "", residential_state: "", residential_zip_code: "", residential_country: "", is_address_same: null, permanent_address: "", permanent_city: "", permanent_state: "", permanent_zip_code: "", permanent_country: "", ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "",
-	passportNumber: "", passportExpiry: "", countryOfIssue: "",
-	i94: "", highestQualification: "", degreeName: "", specialization: "", universityName: "", graduationYear: "", gpa: "",
-	prevEducation: "", employeeId: "", joiningDate: "", jobTitle: "", department: "", reportingManager: "", workLocation: "", employmentType: "",
-	salary: "", taxFilingStatus: "",
-	bankName: "", routingNumber: "", accountNumber: "",
-	docPassport: [], docSSN: [], docVisa: [], docDegree: [], docResume: [], docVoidCheck: [], docI94: [], docw4: [], docResume: [], docOfferLetter: [],
+	userId: "", employeeId: "", firstName: "", lastName: "", preferredName: "", dob: "", gender: "", nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "", emergencyContactName: "", emergencyNumber: "", relationToEmployee: "", residential_address: "", residential_city: "", residential_state: "", residential_zip_code: "", residential_country: "", is_address_same: null, permanent_address: "", permanent_city: "", permanent_state: "", permanent_zip_code: "", permanent_country: "", ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "", passportNumber: "", passportExpiry: "", countryOfIssue: "", i94: "", highestQualification: "", degreeName: "", specialization: "", universityName: "", graduationYear: "", gpa: "", bankName: "", routingNumber: "", accountNumber: "", docPassport: [], docSSN: [], docVisa: [], docDegree: [], docResume: [], docVoidCheck: [], docI94: [], docw4: [], docResume: [], docOfferLetter: [],
 };
 
 const modalStyles = {
@@ -365,9 +358,12 @@ export default function OnboardingForm() {
 		validateToken(urlToken).then((data) => {
 			if (isMounted && data?.data) {
 				const token_user = data.data;
+				console.log("Token validated successfully for user:", token_user);
 				set("firstName", token_user?.first_name);
 				set("lastName", token_user?.last_name);
 				set("personalEmail", token_user?.email);
+				set("employeeId", token_user?.employee_id);
+				set("userId", token_user?.id);
 				setOpen(false);
 				setTokenError(false);
 			} else {
@@ -423,7 +419,7 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const saveAddressInfo = async (employeeId) => {
+	const saveAddressInfo = async () => {
 		try {
 			const response = await fetch(`/api/employees/address/`, {
 				method: "POST",
@@ -431,7 +427,7 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					residential_address: form?.residential_address || "",
 					residential_city: form?.residential_city || "",
 					residential_state: form?.residential_state || "",
@@ -452,7 +448,7 @@ export default function OnboardingForm() {
 				console.log("Address info saved successfully", data.insertId);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: data.insertId,
 					message: "Address info saved successfully"
 				}
@@ -460,7 +456,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: null,
 					message: data.error || "Failed to save address info"
 				}
@@ -470,7 +466,7 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const saveEducationInfo = async (employeeId) => {
+	const saveEducationInfo = async () => {
 		try {
 			const response = await fetch(`/api/employees/education/`, {
 				method: "POST",
@@ -478,13 +474,13 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: employeeId,
-					highestQualification: "",
-					degreeName: "",
-					specialization: "",
-					university: "",
-					graduatedYear: "",
-					grade: ""
+					employeeId: form?.employeeId || null,
+					highestQualification: form?.highestQualification || "",
+					degreeName: form?.degreeName || "",
+					specialization: form?.specialization || "",
+					university: form?.universityName || "",
+					graduatedYear: form?.graduationYear || "",
+					grade: form?.grade || "",
 				}),
 			});
 
@@ -494,7 +490,7 @@ export default function OnboardingForm() {
 				console.log("Education info saved successfully", data.insertId);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: data.insertId,
 					message: "Education info saved successfully"
 				}
@@ -502,7 +498,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: null,
 					message: data.error || "Failed to save education info"
 				}
@@ -512,7 +508,7 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const savePayrollTaxInfo = async (employeeId) => {
+	const savePayrollTaxInfo = async () => {
 		try {
 			const response = await fetch(`/api/employees/payroll_tax_info/`, {
 				method: "POST",
@@ -520,10 +516,12 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: employeeId,
-					bankName: "",
-					routingNumber: "",
-					accountNumber: ""
+					employeeId: form?.employeeId || null,
+					accountHolderName: form?.accountHolderName || "",
+					bankName: form?.bankName || "",
+					routingNumber: form?.routingNumber || "",
+					accountNumber: form?.accountNumber || "",
+					accountType: form?.accountType || "",
 				}),
 			});
 
@@ -533,7 +531,7 @@ export default function OnboardingForm() {
 				console.log("Payroll & Tax info saved successfully", data.insertId);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: data.insertId,
 					message: "Payroll & Tax info saved successfully"
 				}
@@ -541,7 +539,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: null,
 					message: data.error || "Failed to save payroll & tax info"
 				}
@@ -551,7 +549,7 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const saveWorkAuthorizationInfo = async (employeeId) => {
+	const saveWorkAuthorizationInfo = async () => {
 		try {
 			const response = await fetch(`/api/employees/work_authorization/`, {
 				method: "POST",
@@ -559,15 +557,15 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: employeeId,
-					ssn: "",
-					work_permit_number: "",
-					work_auth_status: "",
-					visaType: "",
-					visa_expiry_dt: "",
-					passport_number: "",
-					country_of_issue: "",
-					passport_expiry_date: ""
+					employeeId: form?.employeeId || null,
+					ssn: form?.ssn || "",
+					work_auth_status: form?.workAuthStatus || "",
+					visaType: form?.visaType || "",
+					visa_expiry_dt: form?.visaExpiry || "",
+					passport_number: form?.passportNumber || "",
+					country_of_issue: form?.countryOfIssue || "",
+					passport_expiry_date: form?.passportExpiry || "",
+					i94: form?.i94 || "",
 				}),
 			});
 
@@ -577,7 +575,7 @@ export default function OnboardingForm() {
 				console.log("Work Authorization info saved successfully", data.insertId);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: data.insertId,
 					message: "Work Authorization info saved successfully"
 				}
@@ -585,7 +583,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: null,
 					message: data.error || "Failed to save work authorization info"
 				}
@@ -595,7 +593,7 @@ export default function OnboardingForm() {
 		}
 	};
 
-	const saveDocumentsInfo = async (employeeId) => {
+	const saveDocumentsInfo = async () => {
 		try {
 			const response = await fetch(`/api/employees/documents/`, {
 				method: "POST",
@@ -603,7 +601,7 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					passport_url: "",
 					ssn_url: "",
 					work_permit_url: "",
@@ -624,7 +622,7 @@ export default function OnboardingForm() {
 				console.log("Documents info saved successfully", data.insertId);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: data.insertId,
 					message: "Documents info saved successfully"
 				}
@@ -632,7 +630,7 @@ export default function OnboardingForm() {
 				console.error("Failed", data.error);
 
 				return {
-					employeeId: employeeId,
+					employeeId: form?.employeeId || null,
 					insertId: null,
 					message: data.error || "Failed to save documents info"
 				}
@@ -650,16 +648,21 @@ export default function OnboardingForm() {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					userId: 1,
-					firstName: form.firstName,
-					lastName: form.lastName,
-					preferredName: form.preferredName,
-					dob: form.dob,
-					gender: form.gender,
-					nationality: form.nationality,
-					maritalStatus: form.maritalStatus,
-					personalEmail: form.personalEmail,
-					mobile: form.mobile
+					userId: form?.userId || null,
+					firstName: form?.firstName || "",
+					lastName: form?.lastName || "",
+					preferredName: form?.preferredName || "",
+					dob: form?.dob || "",
+					gender: form?.gender || "",
+					nationality: form?.nationality || "",
+					maritalStatus: form?.maritalStatus || "",
+					personalEmail: form?.personalEmail || "",
+					alternativeEmail: form?.alternativeEmail || "",
+					mobileNumber: form?.mobileNumber || "",
+					alternativeNumber: form?.alternativeNumber || "",
+					emergencyContactName: form?.emergencyContactName || "",
+					emergencyNumber: form?.emergencyNumber || "",
+					relationToEmployee: form?.relationToEmployee || "",
 				}),
 			});
 

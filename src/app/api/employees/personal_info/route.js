@@ -4,12 +4,12 @@ import pool from '@/lib/db';
 export async function POST(request) {
     const body = await request.json();
 
-    const { userId, firstName, lastName, preferredName, personalEmail, mobile, gender, maritalStatus, dob, nationality } = body;
+    const { userId, firstName, lastName, preferredName, personalEmail, gender, maritalStatus, dob, nationality, alternativeEmail, mobileNumber, alternativeNumber, emergencyContactName, emergencyNumber, relationToEmployee } = body;
 
     try {
         const [result] = await pool.execute(
-            'INSERT INTO employees (user_id, first_name, last_name, display_name, email, phone, gender, marital_status, date_of_birth, nationality, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [userId, firstName, lastName, preferredName, personalEmail, mobile, gender, maritalStatus, dob, nationality, new Date(), new Date()]
+            'INSERT INTO employees (user_id, first_name, last_name, display_name, email, mobile_number, gender, marital_status, date_of_birth, nationality, alternative_email, alternative_phone, emergency_contact_name, emergency_phone, relation_to_employee, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [userId, firstName, lastName, preferredName, personalEmail, mobileNumber, gender, maritalStatus, dob, nationality, alternativeEmail, alternativeNumber, emergencyContactName, emergencyNumber, relationToEmployee, new Date(), new Date()]
         );
 
         console.log('DB Result:', result);
