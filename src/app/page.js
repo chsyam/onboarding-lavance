@@ -68,7 +68,7 @@ function TokenValidation({ open, tokenError }) {
 					{
 						tokenError ? (
 							<div style={{ margin: "5px auto" }}>
-								Oops! This link appears to be invalid or has expired. Please reach out to your HR administrator or send out an email to
+								Oops! This onboarding link is invalid, has expired, or has already been used. Please reach out to your HR administrator or send out an email to
 								<Link href="mailto:hr@lavancegroup.com" style={{ margin: "auto 5px", color: "blue" }}>hr@lavancegroup.com</Link>
 								for a new access link.
 							</div>
@@ -374,14 +374,12 @@ export default function OnboardingForm() {
 
 	useEffect(() => {
 		let isMounted = true;
-
 		const params = new URLSearchParams(window.location.search);
 		const urlToken = params.get("token");
 
 		validateToken(urlToken).then((data) => {
 			if (isMounted && data?.data) {
 				const token_user = data.data;
-				// console.log("Token validated successfully for user:", token_user);
 				set("firstName", token_user?.first_name);
 				set("lastName", token_user?.last_name);
 				set("personalEmail", token_user?.email);
@@ -412,34 +410,6 @@ export default function OnboardingForm() {
 			await saveEmployeeData();
 		};
 	};
-
-	// const sendOnboardingEmail = async () => {
-	// 	try {
-	// 		const response = await fetch("/api/emails/onboarding/send-invite", {
-	// 			method: "POST",
-	// 			headers: {
-	// 				"Content-Type": "application/json",
-	// 			},
-	// 			body: JSON.stringify({
-	// 				candidateEmail: "syamkumar6845@gmail.com",
-	// 				candidateName: "Syam Kumar",
-	// 				jobTitle: "Software Engineer",
-	// 				startDate: "2026-04-20",
-	// 				token: "abc123xyz",
-	// 			}),
-	// 		});
-
-	// 		const data = await response.json();
-
-	// 		if (response.ok) {
-	// 			console.log("Email sent successfully", data);
-	// 		} else {
-	// 			console.error("Failed", data);
-	// 		}
-	// 	} catch (error) {
-	// 		console.error("Error:", error);
-	// 	}
-	// };
 
 	const updateTokenStatus = async (userId) => {
 		try {
