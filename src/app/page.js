@@ -36,7 +36,7 @@ const STEPS = [
 ];
 
 const INIT = {
-	userId: "", employeeId: "", firstName: "", lastName: "", preferredName: "", dob: "", gender: "", nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "", emergencyContactName: "", emergencyNumber: "", relationToEmployee: "", residential_address: "", residential_city: "", residential_state: "", residential_zip_code: "", residential_country: "", is_address_same: null, permanent_address: "", permanent_city: "", permanent_state: "", permanent_zip_code: "", permanent_country: "", ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "", passportNumber: "", passportExpiry: "", countryOfIssue: "", i94: "", highestQualification: "", degreeName: "", specialization: "", universityName: "", graduationYear: "", gpa: "", accountHolderName: "", bankName: "", routingNumber: "", confirmRoutingNumber: "", accountNumber: "", confirmAccountNumber: "", docPassport: null, docSSN: null, docVisa: null, docDegree: null, docVoidCheck: null, docI94: null, docw4: null, docOfferLetter: null, passport_url: "", ssn_url: "", visa_url: "", degree_url: "", void_check_url: "", i94_url: "", w4_url: "", offer_letter_url: "",
+	userId: "", employeeId: "", firstName: "", lastName: "", preferredName: "", dob: "", gender: "", nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "", emergencyContactName: "", emergencyNumber: "", relationToEmployee: "", residential_address: "", residential_city: "", residential_state: "", residential_zip_code: "", residential_country: "", is_address_same: null, permanent_address: "", permanent_city: "", permanent_state: "", permanent_zip_code: "", permanent_country: "", ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "", passportNumber: "", passportExpiry: "", countryOfIssue: "", i94: "", highestQualification: "", degreeName: "", specialization: "", universityName: "", graduationYear: "", gpa: "", accountHolderName: "", bankName: "", routingNumber: "", confirmRoutingNumber: "", accountNumber: "", confirmAccountNumber: "", accountType: "", docPassport: null, docSSN: null, docVisa: null, docDegree: null, docVoidCheck: null, docI94: null, docw4: null, docOfferLetter: null, passport_url: "", ssn_url: "", visa_url: "", degree_url: "", void_check_url: "", i94_url: "", w4_url: "", offer_letter_url: "",
 };
 
 const modalStyles = {
@@ -277,7 +277,7 @@ function validate(step, form) {
 			req("permanent_zip_code");
 			req("permanent_country");
 		}
-		if (!form.personalEmail || !/\S+@\S+\.\S+/.test(form.personalEmail)) e.personalEmail = "Enter a valid email address";
+		if (!form?.personalEmail || !/\S+@\S+\.\S+/.test(form?.personalEmail)) e.personalEmail = "Enter a valid email address";
 
 		if (!form?.mobileNumber === form?.alternativeNumber) {
 			e.alternativeNumber = "Alternative number must be different from mobile number";
@@ -294,7 +294,7 @@ function validate(step, form) {
 			req("visaType"); req("visaExpiry");
 		}
 
-		if (["visa", "pr"].includes(form.workAuthStatus)) {
+		if (["visa", "pr"].includes(form?.workAuthStatus)) {
 			req("passportNumber"); req("passportExpiry"); req("countryOfIssue");
 		}
 
@@ -410,24 +410,71 @@ export default function OnboardingForm() {
 		if (!Object.keys(e)?.length) {
 			setIsLoading(true);
 			await saveEmployeeData();
-			setIsLoading(false);
-			// setSubmitted(true);
 		};
 	};
 
-	const sendOnboardingEmail = async () => {
+	// const sendOnboardingEmail = async () => {
+	// 	try {
+	// 		const response = await fetch("/api/emails/onboarding/send-invite", {
+	// 			method: "POST",
+	// 			headers: {
+	// 				"Content-Type": "application/json",
+	// 			},
+	// 			body: JSON.stringify({
+	// 				candidateEmail: "syamkumar6845@gmail.com",
+	// 				candidateName: "Syam Kumar",
+	// 				jobTitle: "Software Engineer",
+	// 				startDate: "2026-04-20",
+	// 				token: "abc123xyz",
+	// 			}),
+	// 		});
+
+	// 		const data = await response.json();
+
+	// 		if (response.ok) {
+	// 			console.log("Email sent successfully", data);
+	// 		} else {
+	// 			console.error("Failed", data);
+	// 		}
+	// 	} catch (error) {
+	// 		console.error("Error:", error);
+	// 	}
+	// };
+
+	const updateTokenStatus = async (userId) => {
 		try {
-			const response = await fetch("/api/emails/onboarding/send-invite", {
+			const response = await fetch("/api/admin/employees/update-token-status", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					candidateEmail: "syamkumar6845@gmail.com",
-					candidateName: "Syam Kumar",
-					jobTitle: "Software Engineer",
-					startDate: "2026-04-20",
-					token: "abc123xyz",
+					userId: userId,
+				}),
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				console.log("Token status updated successfully", data);
+			} else {
+				console.error("Failed to update token status", data);
+			}
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	}
+
+	const sendOnboardingDetailsToHR = async (form) => {
+		try {
+			const response = await fetch("/api/emails/onboarding/onboarding-details-to-hr", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					onboarding_form: form,
+					employeeId: form?.employeeId,
 				}),
 			});
 
@@ -441,7 +488,7 @@ export default function OnboardingForm() {
 		} catch (error) {
 			console.error("Error:", error);
 		}
-	};
+	}
 
 	const sendSubmissionSuccessEmail = async (candidate_email, first_name, last_name) => {
 		try {
@@ -783,7 +830,15 @@ export default function OnboardingForm() {
 
 				if (data?.insertId && address_result?.insertId && education_result?.insertId && work_authorization_result?.insertId && payroll_tax_result?.insertId && documents_result?.insertId) {
 					console.log("All info saved successfully");
-					await sendSubmissionSuccessEmail(form?.personalEmail, form?.firstName, form?.lastName);
+					await sendSubmissionSuccessEmail(
+						form?.personalEmail,
+						form?.firstName,
+						form?.lastName
+					);
+					await sendOnboardingDetailsToHR(form);
+					await updateTokenStatus(form?.userId);
+					setIsLoading(false);
+					setSubmitted(true);
 				} else {
 					console.error("Some info failed to save.")
 				}
@@ -804,7 +859,7 @@ export default function OnboardingForm() {
 						<div style={s.successBadge}>✓</div>
 						<h2 style={{ ...s.cardTitle, marginBottom: 12 }}>Submission Received</h2>
 						<p style={{ color: T.textMuted, fontSize: 15, lineHeight: 1.7, maxWidth: 440, margin: "0 auto 28px" }}>
-							Thank you <strong>{form.firstName || ""} {form.lastName || ""}</strong>. Your onboarding information has been submitted. Our HR team will review your documents and be in touch at <strong>{form.personalEmail}</strong> within 1-2 business days.
+							Thank you <strong>{form?.firstName || ""} {form?.lastName || ""}</strong>. Your onboarding information has been submitted. Our HR team will review your documents and be in touch at <strong>{form?.personalEmail}</strong> within 1-2 business days.
 						</p>
 					</div>
 				</div>
@@ -866,19 +921,19 @@ export default function OnboardingForm() {
 						<div className="step-anim">
 							<Grid cols={2}>
 								<Field label="First Name" required error={errors.firstName}>
-									<FocusInput value={form.firstName} onChange={e => set("firstName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.firstName} />
+									<FocusInput value={form?.firstName} onChange={e => set("firstName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.firstName} />
 								</Field>
 								<Field label="Last Name" required error={errors.lastName}>
-									<FocusInput value={form.lastName} onChange={e => set("lastName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.lastName} />
+									<FocusInput value={form?.lastName} onChange={e => set("lastName", e.target.value)} placeholder="Exactly as per passport / government ID" error={errors.lastName} />
 								</Field>
 								<Field label="Preferred / Display Name" error={errors.preferredName}>
-									<FocusInput value={form.preferredName} onChange={e => set("preferredName", e.target.value)} placeholder="What you'd like to be called" error={errors.preferredName} />
+									<FocusInput value={form?.preferredName} onChange={e => set("preferredName", e.target.value)} placeholder="What you'd like to be called" error={errors.preferredName} />
 								</Field>
 								<Field label="Date of Birth" required error={errors.dob}>
-									<FocusInput type="date" value={form.dob} onChange={e => set("dob", e.target.value)} error={errors.dob} />
+									<FocusInput type="date" value={form?.dob} onChange={e => set("dob", e.target.value)} error={errors.dob} />
 								</Field>
 								<Field label="Gender" required error={errors.gender}>
-									<FocusSelect value={form.gender} onChange={e => set("gender", e.target.value)} error={errors.gender}>
+									<FocusSelect value={form?.gender} onChange={e => set("gender", e.target.value)} error={errors.gender}>
 										<option value="">Prefer not to say</option>
 										<option>Male</option>
 										<option>Female</option>
@@ -886,10 +941,10 @@ export default function OnboardingForm() {
 									</FocusSelect>
 								</Field>
 								<Field label="Nationality / Citizenship" required error={errors.nationality}>
-									<FocusInput value={form.nationality} onChange={e => set("nationality", e.target.value)} placeholder="e.g. United States" error={errors.nationality} />
+									<FocusInput value={form?.nationality} onChange={e => set("nationality", e.target.value)} placeholder="e.g. United States" error={errors.nationality} />
 								</Field>
 								<Field label="Marital Status" required error={errors.maritalStatus}>
-									<FocusSelect value={form.maritalStatus} onChange={e => set("maritalStatus", e.target.value)} error={errors.maritalStatus}>
+									<FocusSelect value={form?.maritalStatus} onChange={e => set("maritalStatus", e.target.value)} error={errors.maritalStatus}>
 										<option value="">Select</option>
 										<option>Single</option>
 										<option>Married</option>
@@ -897,68 +952,68 @@ export default function OnboardingForm() {
 									</FocusSelect>
 								</Field>
 								<Field label="Personal Email Address" required error={errors.personalEmail}>
-									<FocusInput type="email" value={form.personalEmail} onChange={e => set("personalEmail", e.target.value)} placeholder="your@email.com" error={errors.personalEmail} />
+									<FocusInput type="email" value={form?.personalEmail} onChange={e => set("personalEmail", e.target.value)} placeholder="your@email.com" error={errors.personalEmail} />
 								</Field>
 								<Field label="Alternative Email Address" error={errors.alternativeEmail}>
-									<FocusInput type="email" value={form.alternativeEmail} onChange={e => set("alternativeEmail", e.target.value)} placeholder="your@email.com" error={errors.alternativeEmail} />
+									<FocusInput type="email" value={form?.alternativeEmail} onChange={e => set("alternativeEmail", e.target.value)} placeholder="your@email.com" error={errors.alternativeEmail} />
 								</Field>
 								<Field label="Mobile Number" required error={errors.mobileNumber}>
-									<FocusInput value={form.mobileNumber} onChange={e => set("mobileNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.mobileNumber} />
+									<FocusInput value={form?.mobileNumber} onChange={e => set("mobileNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.mobileNumber} />
 								</Field>
 								<Field label="Alternative Contact Number" error={errors.alternativeNumber}>
-									<FocusInput value={form.alternativeNumber} onChange={e => set("alternativeNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.alternativeNumber} />
+									<FocusInput value={form?.alternativeNumber} onChange={e => set("alternativeNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.alternativeNumber} />
 								</Field>
 							</Grid>
 							<Divider />
 							<Grid cols={2}>
 								<Field label="Emergency Contact Name" required error={errors.emergencyContactName}>
-									<FocusInput value={form.emergencyContactName} onChange={e => set("emergencyContactName", e.target.value)} placeholder="Emergency Contact Name" error={errors.emergencyContactName} />
+									<FocusInput value={form?.emergencyContactName} onChange={e => set("emergencyContactName", e.target.value)} placeholder="Emergency Contact Name" error={errors.emergencyContactName} />
 								</Field>
 								<Field label="Emergency Contact Number" required error={errors.emergencyNumber}>
-									<FocusInput value={form.emergencyNumber} onChange={e => set("emergencyNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.emergencyNumber} />
+									<FocusInput value={form?.emergencyNumber} onChange={e => set("emergencyNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.emergencyNumber} />
 								</Field>
 								<Field label="Relationship to employee" required error={errors.relationToEmployee}>
-									<FocusInput value={form.relationToEmployee} onChange={e => set("relationToEmployee", e.target.value)} placeholder="Relationship to employee" error={errors.relationToEmployee} />
+									<FocusInput value={form?.relationToEmployee} onChange={e => set("relationToEmployee", e.target.value)} placeholder="Relationship to employee" error={errors.relationToEmployee} />
 								</Field>
 							</Grid>
 							<Divider />
 							<Grid cols={1}>
 								<Field label="Current Residential Address" required error={errors.residential_address} span>
-									<FocusTextarea value={form.residential_address} onChange={e => set("residential_address", e.target.value)} placeholder="Address Line 1" error={errors.residential_address} />
+									<FocusTextarea value={form?.residential_address} onChange={e => set("residential_address", e.target.value)} placeholder="Address Line 1" error={errors.residential_address} />
 								</Field>
 							</Grid>
 							<Grid cols={2}>
 								<Field label="City" required error={errors.residential_city}>
-									<FocusInput value={form.residential_city} onChange={e => set("residential_city", e.target.value)} placeholder="City" error={errors.residential_city} />
+									<FocusInput value={form?.residential_city} onChange={e => set("residential_city", e.target.value)} placeholder="City" error={errors.residential_city} />
 								</Field>
 								<Field label="State" required error={errors.residential_state}>
-									<FocusInput value={form.residential_state} onChange={e => set("residential_state", e.target.value)} placeholder="State" error={errors.residential_state} />
+									<FocusInput value={form?.residential_state} onChange={e => set("residential_state", e.target.value)} placeholder="State" error={errors.residential_state} />
 								</Field>
 								<Field label="Country" required error={errors.residential_country}>
-									<FocusInput value={form.residential_country} onChange={e => set("residential_country", e.target.value)} placeholder="Country" error={errors.residential_country} />
+									<FocusInput value={form?.residential_country} onChange={e => set("residential_country", e.target.value)} placeholder="Country" error={errors.residential_country} />
 								</Field>
 								<Field label="ZIP" required error={errors.residential_zip_code}>
-									<FocusInput value={form.residential_zip_code} onChange={e => set("residential_zip_code", e.target.value)} placeholder="ZIP Code" error={errors.residential_zip_code} />
+									<FocusInput value={form?.residential_zip_code} onChange={e => set("residential_zip_code", e.target.value)} placeholder="ZIP Code" error={errors.residential_zip_code} />
 								</Field>
 							</Grid>
 							<SameAddressCheckbox checked={isSame} onChange={() => handleAddressChange()} error={errors.is_address_same} />
 							<Grid cols={1}>
 								<Field label="Permanent Address" required={!isSame} error={errors.permanent_address} span>
-									<FocusTextarea value={isSame ? form.residential_address : form.permanent_address} onChange={e => set("permanent_address", e.target.value)} placeholder="Address Line 1" error={errors.permanent_address} />
+									<FocusTextarea value={isSame ? form?.residential_address : form?.permanent_address} onChange={e => set("permanent_address", e.target.value)} placeholder="Address Line 1" error={errors.permanent_address} />
 								</Field>
 							</Grid>
 							<Grid cols={2}>
 								<Field label="City" required={!isSame} error={errors.permanent_city}>
-									<FocusInput value={isSame ? form.residential_city : form.permanent_city} onChange={e => set("permanent_city", e.target.value)} placeholder="City" error={errors.permanent_city} />
+									<FocusInput value={isSame ? form?.residential_city : form?.permanent_city} onChange={e => set("permanent_city", e.target.value)} placeholder="City" error={errors.permanent_city} />
 								</Field>
 								<Field label="State" required={!isSame} error={errors.permanent_state}>
-									<FocusInput value={isSame ? form.residential_state : form.permanent_state} onChange={e => set("permanent_state", e.target.value)} placeholder="State" error={errors.permanent_state} />
+									<FocusInput value={isSame ? form?.residential_state : form?.permanent_state} onChange={e => set("permanent_state", e.target.value)} placeholder="State" error={errors.permanent_state} />
 								</Field>
 								<Field label="Country" required={!isSame} error={errors.permanent_country}>
-									<FocusInput value={isSame ? form.residential_country : form.permanent_country} onChange={e => set("permanent_country", e.target.value)} placeholder="Country" error={errors.permanent_country} />
+									<FocusInput value={isSame ? form?.residential_country : form?.permanent_country} onChange={e => set("permanent_country", e.target.value)} placeholder="Country" error={errors.permanent_country} />
 								</Field>
 								<Field label="ZIP" required={!isSame} error={errors.permanent_zip_code}>
-									<FocusInput value={isSame ? form.residential_zip_code : form.permanent_zip_code} onChange={e => set("permanent_zip_code", e.target.value)} placeholder="ZIP Code" error={errors.permanent_zip_code} />
+									<FocusInput value={isSame ? form?.residential_zip_code : form?.permanent_zip_code} onChange={e => set("permanent_zip_code", e.target.value)} placeholder="ZIP Code" error={errors.permanent_zip_code} />
 								</Field>
 							</Grid>
 						</div>
@@ -969,12 +1024,12 @@ export default function OnboardingForm() {
 						<div className="step-anim">
 							<Grid cols={2}>
 								<Field label="Social Security Number (SSN)" required error={errors.ssn}>
-									<FocusInput value={form.ssn} onChange={e => set("ssn", e.target.value)} placeholder="SSN required for payroll purposes" error={errors.ssn} />
+									<FocusInput value={form?.ssn} onChange={e => set("ssn", e.target.value)} placeholder="SSN required for payroll purposes" error={errors.ssn} />
 								</Field>
 							</Grid>
 							<Divider />
 							<Field label="Work Authorization Status" required error={errors.workAuthStatus}>
-								<RadioGroup required value={form.workAuthStatus} onChange={v => set("workAuthStatus", v)}
+								<RadioGroup required value={form?.workAuthStatus} onChange={v => set("workAuthStatus", v)}
 									options={[
 										{ value: "citizen", label: "U.S. Citizen" },
 										{ value: "pr", label: "Permanent Resident (Green Card)" },
@@ -982,39 +1037,39 @@ export default function OnboardingForm() {
 									]}
 								/>
 							</Field>
-							{(form.workAuthStatus === "visa") && (
+							{(form?.workAuthStatus === "visa") && (
 								<>
 									<Divider />
 									<Grid cols={2}>
 										<Field label="Visa Type" required error={errors.visaType}>
-											<FocusSelect value={form.visaType} onChange={e => set("visaType", e.target.value)} error={errors.visaType}>
+											<FocusSelect value={form?.visaType} onChange={e => set("visaType", e.target.value)} error={errors.visaType}>
 												<option value="">Select visa type</option>
 												{["H-1B", "H-4 EAD", "L-1", "OPT", "CPT", "TN", "O-1", "E-3", "Other"].map(v => <option key={v}>{v}</option>)}
 											</FocusSelect>
 										</Field>
 										<Field label="Visa Expiry Date" required error={errors.visaExpiry}>
-											<FocusInput type="date" value={form.visaExpiry} onChange={e => set("visaExpiry", e.target.value)} error={errors.visaExpiry} />
+											<FocusInput type="date" value={form?.visaExpiry} onChange={e => set("visaExpiry", e.target.value)} error={errors.visaExpiry} />
 										</Field>
 									</Grid>
 								</>
 							)}
 							{
-								(form.workAuthStatus === "pr" || form?.workAuthStatus === "visa") && (
+								(form?.workAuthStatus === "pr" || form?.workAuthStatus === "visa") && (
 									<>
 										<Divider />
 										<SecHead>Passport Details</SecHead>
 										<Grid cols={3}>
 											<Field label="Passport Number" required error={errors.passportNumber}>
-												<FocusInput value={form.passportNumber} onChange={e => set("passportNumber", e.target.value)} placeholder="e.g. A12345678" error={errors.passportNumber} />
+												<FocusInput value={form?.passportNumber} onChange={e => set("passportNumber", e.target.value)} placeholder="e.g. A12345678" error={errors.passportNumber} />
 											</Field>
 											<Field label="Country of Issue" required error={errors.countryOfIssue}>
-												<FocusInput value={form.countryOfIssue} onChange={e => set("countryOfIssue", e.target.value)} placeholder="e.g. United States" error={errors.countryOfIssue} />
+												<FocusInput value={form?.countryOfIssue} onChange={e => set("countryOfIssue", e.target.value)} placeholder="e.g. United States" error={errors.countryOfIssue} />
 											</Field>
 											<Field label="Passport Expiry Date" required error={errors.passportExpiry}>
-												<FocusInput type="date" value={form.passportExpiry} onChange={e => set("passportExpiry", e.target.value)} error={errors.passportExpiry} />
+												<FocusInput type="date" value={form?.passportExpiry} onChange={e => set("passportExpiry", e.target.value)} error={errors.passportExpiry} />
 											</Field>
 											<Field label="I-94 Number (if applicable)">
-												<FocusInput value={form.i94} onChange={e => set("i94", e.target.value)} placeholder="11-digit number" />
+												<FocusInput value={form?.i94} onChange={e => set("i94", e.target.value)} placeholder="11-digit number" />
 											</Field>
 										</Grid>
 									</>
@@ -1050,28 +1105,28 @@ export default function OnboardingForm() {
 						<div className="step-anim">
 							<Grid cols={2}>
 								<Field label="Highest Qualification" required error={errors.highestQualification}>
-									<FocusSelect value={form.highestQualification} onChange={e => set("highestQualification", e.target.value)} error={errors.highestQualification}>
+									<FocusSelect value={form?.highestQualification} onChange={e => set("highestQualification", e.target.value)} error={errors.highestQualification}>
 										<option value="">Select qualification</option>
 										{["High School / GED", "Associate's Degree", "Bachelor's Degree", "Master's Degree", "MBA", "Doctorate / PhD", "Professional Certification", "Other"].map(q => <option key={q}>{q}</option>)}
 									</FocusSelect>
 								</Field>
 								<Field label="Degree / Course Name" required error={errors.degreeName}>
-									<FocusInput value={form.degreeName} onChange={e => set("degreeName", e.target.value)} placeholder="e.g. Bachelor of Science" error={errors.degreeName} />
+									<FocusInput value={form?.degreeName} onChange={e => set("degreeName", e.target.value)} placeholder="e.g. Bachelor of Science" error={errors.degreeName} />
 								</Field>
 								<Field label="Specialization / Major" required error={errors.specialization}>
-									<FocusInput value={form.specialization} onChange={e => set("specialization", e.target.value)} placeholder="e.g. Computer Science" error={errors.specialization} />
+									<FocusInput value={form?.specialization} onChange={e => set("specialization", e.target.value)} placeholder="e.g. Computer Science" error={errors.specialization} />
 								</Field>
 								<Field label="University / College Name" required error={errors.universityName}>
-									<FocusInput value={form.universityName} onChange={e => set("universityName", e.target.value)} placeholder="e.g. University of Texas" error={errors.universityName} />
+									<FocusInput value={form?.universityName} onChange={e => set("universityName", e.target.value)} placeholder="e.g. University of Texas" error={errors.universityName} />
 								</Field>
 								<Field label="Graduation Year" required error={errors.graduationYear}>
-									<FocusSelect value={form.graduationYear} onChange={e => set("graduationYear", e.target.value)} error={errors.graduationYear}>
+									<FocusSelect value={form?.graduationYear} onChange={e => set("graduationYear", e.target.value)} error={errors.graduationYear}>
 										<option value="">Select year</option>
 										{Array.from({ length: 35 }, (_, i) => new Date().getFullYear() - i).map(y => <option key={y}>{y}</option>)}
 									</FocusSelect>
 								</Field>
 								<Field label="GPA / CGPA / Percentage" required error={errors.gpa}>
-									<FocusInput value={form.gpa} onChange={e => set("gpa", e.target.value)} placeholder="e.g. 3.8 / 4.0 or 85%" error={errors.gpa} />
+									<FocusInput value={form?.gpa} onChange={e => set("gpa", e.target.value)} placeholder="e.g. 3.8 / 4.0 or 85%" error={errors.gpa} />
 								</Field>
 							</Grid>
 							<Divider />
@@ -1107,25 +1162,25 @@ export default function OnboardingForm() {
 							</div>
 							<Grid cols={2}>
 								<Field label="Account Holder Name" required error={errors.accountHolderName}>
-									<FocusInput value={form.accountHolderName} onChange={e => set("accountHolderName", e.target.value)} placeholder="Full name as it appears on your bank account" error={errors.accountHolderName} />
+									<FocusInput value={form?.accountHolderName} onChange={e => set("accountHolderName", e.target.value)} placeholder="Full name as it appears on your bank account" error={errors.accountHolderName} />
 								</Field>
 								<Field label="Bank Name" required error={errors.bankName}>
-									<FocusInput value={form.bankName} onChange={e => set("bankName", e.target.value)} placeholder="e.g. Chase, Wells Fargo" error={errors.bankName} />
+									<FocusInput value={form?.bankName} onChange={e => set("bankName", e.target.value)} placeholder="e.g. Chase, Wells Fargo" error={errors.bankName} />
 								</Field>
 								<Field label="Routing Number" required error={errors.routingNumber}>
-									<FocusInput value={form.routingNumber} onChange={e => set("routingNumber", e.target.value)} placeholder="9-digit routing number" error={errors.routingNumber} />
+									<FocusInput value={form?.routingNumber} onChange={e => set("routingNumber", e.target.value)} placeholder="9-digit routing number" error={errors.routingNumber} />
 								</Field>
 								<Field label="Confirm Routing Number" required error={errors.confirmRoutingNumber}>
-									<FocusInput value={form.confirmRoutingNumber} onChange={e => set("confirmRoutingNumber", e.target.value)} placeholder="Confirm 9-digit routing number" error={errors.confirmRoutingNumber} />
+									<FocusInput value={form?.confirmRoutingNumber} onChange={e => set("confirmRoutingNumber", e.target.value)} placeholder="Confirm 9-digit routing number" error={errors.confirmRoutingNumber} />
 								</Field>
 								<Field label="Account Number" required error={errors.accountNumber}>
-									<FocusInput value={form.accountNumber} onChange={e => set("accountNumber", e.target.value)} placeholder="Account number" error={errors.accountNumber} />
+									<FocusInput value={form?.accountNumber} onChange={e => set("accountNumber", e.target.value)} placeholder="Account number" error={errors.accountNumber} />
 								</Field>
 								<Field label="Confirm Account Number" required error={errors.confirmAccountNumber}>
-									<FocusInput value={form.confirmAccountNumber} onChange={e => set("confirmAccountNumber", e.target.value)} placeholder="Confirm account number" error={errors.confirmAccountNumber} />
+									<FocusInput value={form?.confirmAccountNumber} onChange={e => set("confirmAccountNumber", e.target.value)} placeholder="Confirm account number" error={errors.confirmAccountNumber} />
 								</Field>
 								<Field label="Account Type" required error={errors.accountType}>
-									<FocusSelect value={form.accountType} onChange={e => set("accountType", e.target.value)} error={errors.accountType}>
+									<FocusSelect value={form?.accountType} onChange={e => set("accountType", e.target.value)} error={errors.accountType}>
 										<option value="">Select</option>
 										<option value="savings">Savings Account</option>
 										<option value="checking">Checking Account</option>
@@ -1188,74 +1243,74 @@ export default function OnboardingForm() {
 								Please review all the information you have provided before submitting. You may go back to any previous step to make corrections.
 							</p>
 							<ReviewSection title="Personal Information">
-								<ReviewRow label="First Name" value={form.firstName} />
-								<ReviewRow label="Last Name" value={form.lastName} />
-								<ReviewRow label="Preferred Name" value={form.preferredName} />
-								<ReviewRow label="Date of Birth" value={form.dob} />
-								<ReviewRow label="Gender" value={form.gender} />
-								<ReviewRow label="Nationality" value={form.nationality} />
-								<ReviewRow label="Marital Status" value={form.maritalStatus} />
-								<ReviewRow label="Personal Email" value={form.personalEmail} />
-								<ReviewRow label="Alternative Email" value={form.alternativeEmail} />
-								<ReviewRow label="Mobile Number" value={form.mobileNumber} />
-								<ReviewRow label="Alternative Mobile Number" value={form.alternativeNumber} />
+								<ReviewRow label="First Name" value={form?.firstName} />
+								<ReviewRow label="Last Name" value={form?.lastName} />
+								<ReviewRow label="Preferred Name" value={form?.preferredName} />
+								<ReviewRow label="Date of Birth" value={form?.dob} />
+								<ReviewRow label="Gender" value={form?.gender} />
+								<ReviewRow label="Nationality" value={form?.nationality} />
+								<ReviewRow label="Marital Status" value={form?.maritalStatus} />
+								<ReviewRow label="Personal Email" value={form?.personalEmail} />
+								<ReviewRow label="Alternative Email" value={form?.alternativeEmail} />
+								<ReviewRow label="Mobile Number" value={form?.mobileNumber} />
+								<ReviewRow label="Alternative Mobile Number" value={form?.alternativeNumber} />
 							</ReviewSection>
 							<ReviewSection title="Emergency Contact">
-								<ReviewRow label="Contact Name" value={form.emergencyContactName} />
-								<ReviewRow label="Contact Number" value={form.emergencyNumber} />
-								<ReviewRow label="Relationship to Employee" value={form.relationToEmployee} />
+								<ReviewRow label="Contact Name" value={form?.emergencyContactName} />
+								<ReviewRow label="Contact Number" value={form?.emergencyNumber} />
+								<ReviewRow label="Relationship to Employee" value={form?.relationToEmployee} />
 							</ReviewSection>
 							<ReviewSection title="Addresses">
-								<ReviewRow label="Current Address" value={form.residential_address} />
-								<ReviewRow label="City" value={form.residential_city} />
-								<ReviewRow label="State" value={form.residential_state} />
-								<ReviewRow label="ZIP Code" value={form.residential_zip_code} />
+								<ReviewRow label="Current Address" value={form?.residential_address} />
+								<ReviewRow label="City" value={form?.residential_city} />
+								<ReviewRow label="State" value={form?.residential_state} />
+								<ReviewRow label="ZIP Code" value={form?.residential_zip_code} />
 								{
 									isSame && (
 										<>
-											<ReviewRow label="Permanent Address" value={form.permanent_address} />
-											<ReviewRow label="City" value={form.permanent_city} />
-											<ReviewRow label="State" value={form.permanent_state} />
-											<ReviewRow label="ZIP Code" value={form.permanent_zip_code} />
+											<ReviewRow label="Permanent Address" value={form?.permanent_address} />
+											<ReviewRow label="City" value={form?.permanent_city} />
+											<ReviewRow label="State" value={form?.permanent_state} />
+											<ReviewRow label="ZIP Code" value={form?.permanent_zip_code} />
 										</>
 									)
 								}
 							</ReviewSection>
 							<ReviewSection title="Work Authorization">
-								<ReviewRow label="SSN" value={form.ssn} />
-								<ReviewRow label="Authorization Status" value={form.workAuthStatus} />
-								<ReviewRow label="Visa Type" value={form.visaType} />
-								<ReviewRow label="Visa Expiry" value={form.visaExpiry} />
-								<ReviewRow label="Passport Number" value={form.passportNumber} />
-								<ReviewRow label="Country of Issue" value={form.countryOfIssue} />
-								<ReviewRow label="Passport Expiry" value={form.passportExpiry} />
-								<ReviewRow label="I-94 Number" value={form.i94} />
+								<ReviewRow label="SSN" value={form?.ssn} />
+								<ReviewRow label="Authorization Status" value={form?.workAuthStatus} />
+								<ReviewRow label="Visa Type" value={form?.visaType} />
+								<ReviewRow label="Visa Expiry" value={form?.visaExpiry} />
+								<ReviewRow label="Passport Number" value={form?.passportNumber} />
+								<ReviewRow label="Country of Issue" value={form?.countryOfIssue} />
+								<ReviewRow label="Passport Expiry" value={form?.passportExpiry} />
+								<ReviewRow label="I-94 Number" value={form?.i94} />
 							</ReviewSection>
 							<ReviewSection title="Education">
-								<ReviewRow label="Highest Qualification" value={form.highestQualification} />
-								<ReviewRow label="Degree" value={form.degreeName} />
-								<ReviewRow label="Specialization" value={form.specialization} />
-								<ReviewRow label="University" value={form.universityName} />
-								<ReviewRow label="Graduation Year" value={form.graduationYear} />
-								<ReviewRow label="GPA/Percentage" value={form.gpa} />
+								<ReviewRow label="Highest Qualification" value={form?.highestQualification} />
+								<ReviewRow label="Degree" value={form?.degreeName} />
+								<ReviewRow label="Specialization" value={form?.specialization} />
+								<ReviewRow label="University" value={form?.universityName} />
+								<ReviewRow label="Graduation Year" value={form?.graduationYear} />
+								<ReviewRow label="GPA/Percentage" value={form?.gpa} />
 							</ReviewSection>
 							<ReviewSection title="Payroll & Tax">
-								<ReviewRow label="Account Holder's Name" value={form.accountHolderName} />
-								<ReviewRow label="Bank Name" value={form.bankName} />
-								<ReviewRow label="Routing Number" value={form.routingNumber} />
-								<ReviewRow label="Account Number" value={form.accountNumber} />
-								<ReviewRow label="Account Type" value={form.accountType} />
+								<ReviewRow label="Account Holder's Name" value={form?.accountHolderName} />
+								<ReviewRow label="Bank Name" value={form?.bankName} />
+								<ReviewRow label="Routing Number" value={form?.routingNumber} />
+								<ReviewRow label="Account Number" value={form?.accountNumber} />
+								<ReviewRow label="Account Type" value={form?.accountType} />
 							</ReviewSection>
 							<ReviewSection title="Documents Uploaded">
 								{[
-									["Passport", form.docPassport],
-									["SSN Card", form.docSSN],
-									["Visa/Work Permit", form.docVisa],
-									["Degree Certificate", form.docDegree],
-									["Cancelled/Void Check", form.docVoidCheck],
-									["I-94 Document", form.docI94],
-									["W4 Document", form.docw4],
-									["Offer Letter", form.docOfferLetter],
+									["Passport", form?.docPassport],
+									["SSN Card", form?.docSSN],
+									["Visa/Work Permit", form?.docVisa],
+									["Degree Certificate", form?.docDegree],
+									["Cancelled/Void Check", form?.docVoidCheck],
+									["I-94 Document", form?.docI94],
+									["W4 Document", form?.docw4],
+									["Offer Letter", form?.docOfferLetter],
 								].map(([label, file]) => file && (
 									<ReviewRow key={label} label={label} value={file?.name} />
 								))}

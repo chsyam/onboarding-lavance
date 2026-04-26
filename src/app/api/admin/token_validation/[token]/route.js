@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
 
     try {
         const [[user]] = await pool.execute(
-            'SELECT * FROM users WHERE token = ?', [token]);
+            'SELECT * FROM users WHERE token = ? and onboarding_status = ?', [token, 'not_started']);
 
         if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
