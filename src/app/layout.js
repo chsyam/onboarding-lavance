@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
 	title: "Employee Onboarding Form | Lavance Group",
@@ -12,6 +13,7 @@ export default function RootLayout({ children }) {
 			className={`h-full antialiased`}
 		>
 			<body className="min-h-full flex flex-col">{children}</body>
+			<Analytics />
 		</html>
 	);
 }
