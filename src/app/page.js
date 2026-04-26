@@ -269,14 +269,23 @@ function validate(step, form) {
 	};
 
 	if (step === 1) {
-		req("firstName"); req("lastName"); req("gender"); req("dob"); req("nationality"); req("maritalStatus"); req("personalEmail"); req("mobileNumber"); req("emergencyNumber"); req("emergencyContactName"); req("relationToEmployee"); req("residential_address"); req("residential_city"); req("residential_state"); req("residential_zip_code"); req("is_address_same");
+		req("firstName"); req("lastName"); req("gender"); req("dob"); req("nationality"); req("maritalStatus"); req("personalEmail"); req("mobileNumber"); req("emergencyNumber"); req("emergencyContactName"); req("relationToEmployee"); req("residential_address"); req("residential_city"); req("residential_state"); req("residential_zip_code"); req("residential_country"); req("is_address_same");
 		if (!form?.is_address_same) {
 			req("permanent_address");
 			req("permanent_city");
 			req("permanent_state");
 			req("permanent_zip_code");
+			req("permanent_country");
 		}
 		if (!form.personalEmail || !/\S+@\S+\.\S+/.test(form.personalEmail)) e.personalEmail = "Enter a valid email address";
+
+		if (!form?.mobileNumber === form?.alternativeNumber) {
+			e.alternativeNumber = "Alternative number must be different from mobile number";
+		}
+
+		if (!form?.emergencyNumber && (!form?.emergencyNumber === form?.mobileNumber || form?.emergencyNumber === !form?.alternativeNumber)) {
+			e.emergencyNumber = "Emergency contact number must be different from personal mobile and alternative numbers";
+		}
 	}
 	if (step === 2) {
 		req("ssn"); req("workAuthStatus");
@@ -305,6 +314,10 @@ function validate(step, form) {
 		req("accountHolderName"); req("bankName"); req("routingNumber"); req("confirmRoutingNumber"); req("accountNumber"); req("confirmAccountNumber"); req("accountType");
 		if (!form?.docVoidCheck)
 			e.docVoidCheck = "Please upload Void/Cancellation check";
+		if (form?.accountNumber !== form?.confirmAccountNumber)
+			e.confirmAccountNumber = "Account number and confirm account number must match";
+		if (form?.routingNumber !== form?.confirmRoutingNumber)
+			e.confirmRoutingNumber = "Routing number and confirm routing number must match";
 	}
 	if (step === 5) {
 		if (!form?.docI94)
@@ -809,6 +822,7 @@ export default function OnboardingForm() {
 				delete updated.permanent_city;
 				delete updated.permanent_state;
 				delete updated.permanent_zip_code;
+				delete updated.permanent_country;
 				return updated;
 			});
 		}
