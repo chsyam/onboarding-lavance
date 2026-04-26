@@ -8,8 +8,22 @@ export async function POST(request) {
 
     try {
         const [result] = await pool.execute(
-            'INSERT INTO education (employee_id, highest_qualification, degree_name, specialization, university, graduated_year, grade, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [employeeId, highestQualification, degreeName, specialization, university, graduatedYear, grade, new Date(), new Date()]
+            `INSERT INTO education (
+        employee_id, highest_qualification, degree_name, specialization, 
+        university, graduated_year, grade, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+        highest_qualification = VALUES(highest_qualification),
+        degree_name = VALUES(degree_name),
+        specialization = VALUES(specialization),
+        university = VALUES(university),
+        graduated_year = VALUES(graduated_year),
+        grade = VALUES(grade),
+        updated_at = VALUES(updated_at)`,
+            [
+                employeeId, highestQualification, degreeName, specialization,
+                university, graduatedYear, grade, new Date(), new Date()
+            ]
         );
 
         return NextResponse.json(

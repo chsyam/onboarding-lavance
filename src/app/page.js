@@ -298,11 +298,11 @@ function validate(step, form) {
 			req("passportNumber"); req("passportExpiry"); req("countryOfIssue");
 		}
 
-		if (!form?.docPassport)
+		if (form?.workAuthStatus !== "citizen" && !form?.docPassport)
 			e.docPassport = "Please upload passport copy";
 		if (!form?.docSSN)
 			e.docSSN = "Please upload SSN card copy";
-		if (!form?.docVisa)
+		if (form?.workAuthStatus === "visa" && !form?.docVisa)
 			e.docVisa = "Please upload visa copy";
 	}
 	if (step === 3) {

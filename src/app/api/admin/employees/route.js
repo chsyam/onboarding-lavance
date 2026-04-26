@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { v4 as uuidv4 } from 'uuid';
 import { ulid } from "ulid";
 
 export async function POST(request) {
