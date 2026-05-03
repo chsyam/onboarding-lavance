@@ -1,0 +1,23 @@
+[
+  { "value": "spouse", "label": "Spouse" },
+  { "value": "father", "label": "Father" },
+  { "value": "mother", "label": "Mother" },
+  { "value": "son", "label": "Son" },
+  { "value": "daughter", "label": "Daughter" },
+  { "value": "brother", "label": "Brother" },
+  { "value": "sister", "label": "Sister" },
+  { "value": "grandfather", "label": "Grandfather" },
+  { "value": "grandmother", "label": "Grandmother" },
+  { "value": "uncle", "label": "Uncle" },
+  { "value": "aunt", "label": "Aunt" },
+  { "value": "nephew", "label": "Nephew" },
+  { "value": "niece", "label": "Niece" },
+  { "value": "cousin", "label": "Cousin" },
+  { "value": "father_in_law", "label": "Father-in-law" },
+  { "value": "mother_in_law", "label": "Mother-in-law" },
+  { "value": "brother_in_law", "label": "Brother-in-law" },
+  { "value": "sister_in_law", "label": "Sister-in-law" },
+  { "value": "son_in_law", "label": "Son-in-law" },
+  { "value": "daughter_in_law", "label": "Daughter-in-law" },
+  { "value": "other", "label": "Other" }
+]

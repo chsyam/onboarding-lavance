@@ -5,8 +5,11 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { RotatingLines } from "react-loader-spinner";
 import Link from "next/link";
+import CountrySelect from "@/components/CountrySelect";
+import { isValidPhoneNumber } from 'libphonenumber-js';
+import relations from "../../public/data/relations.json";
+import AddressForm from "./address/page";
 
-// ─── Design tokens from Lavance LLC ───────────────────────────────────────────
 const T = {
 	primary: "#1a3c34",
 	primaryHover: "#14302a",
@@ -36,7 +39,7 @@ const STEPS = [
 ];
 
 const INIT = {
-	userId: "", employeeId: "", firstName: "", lastName: "", preferredName: "", dob: "", gender: "", nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "", emergencyContactName: "", emergencyNumber: "", relationToEmployee: "", residential_address: "", residential_city: "", residential_state: "", residential_zip_code: "", residential_country: "", is_address_same: null, permanent_address: "", permanent_city: "", permanent_state: "", permanent_zip_code: "", permanent_country: "", ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "", passportNumber: "", passportExpiry: "", countryOfIssue: "", i94: "", highestQualification: "", degreeName: "", specialization: "", universityName: "", graduationYear: "", gpa: "", accountHolderName: "", bankName: "", routingNumber: "", confirmRoutingNumber: "", accountNumber: "", confirmAccountNumber: "", accountType: "", docPassport: null, docSSN: null, docVisa: null, docDegree: null, docVoidCheck: null, docI94: null, docw4: null, docOfferLetter: null, passport_url: "", ssn_url: "", visa_url: "", degree_url: "", void_check_url: "", i94_url: "", w4_url: "", offer_letter_url: "",
+	userId: "", employeeId: "", firstName: "", lastName: "", preferredName: "", dob: "", gender: "", nationality: "", maritalStatus: "", personalEmail: "", alternativeEmail: "", mobileNumber: "", alternativeNumber: "", emergencyContactName: "", emergencyNumber: "", relationToEmployee: "", relationSelected: "", residential_address: "", residential_city: "", residential_state: "", residential_zip_code: "", residential_country: "", is_address_same: null, permanent_address: "", permanent_city: "", permanent_state: "", permanent_zip_code: "", permanent_country: "", ssn: "", workAuthStatus: "", visaType: "", visaExpiry: "", passportNumber: "", passportExpiry: "", countryOfIssue: "", i94: "", highestQualification: "", degreeName: "", specialization: "", universityName: "", graduationYear: "", gpa: "", accountHolderName: "", bankName: "", routingNumber: "", confirmRoutingNumber: "", accountNumber: "", confirmAccountNumber: "", accountType: "", docPassport: null, docSSN: null, docVisa: null, docDegree: null, docVoidCheck: null, docI94: null, docw4: null, docOfferLetter: null, passport_url: "", ssn_url: "", visa_url: "", degree_url: "", void_check_url: "", i94_url: "", w4_url: "", offer_letter_url: "",
 };
 
 const modalStyles = {
@@ -269,7 +272,8 @@ function validate(step, form) {
 	};
 
 	if (step === 1) {
-		req("firstName"); req("lastName"); req("gender"); req("dob"); req("nationality"); req("maritalStatus"); req("personalEmail"); req("mobileNumber"); req("emergencyNumber"); req("emergencyContactName"); req("relationToEmployee"); req("residential_address"); req("residential_city"); req("residential_state"); req("residential_zip_code"); req("residential_country"); req("is_address_same");
+		req("firstName"); req("lastName"); req("gender"); req("dob");
+		req("nationality"); req("maritalStatus"); req("personalEmail"); req("mobileNumber"); req("emergencyNumber"); req("emergencyContactName"); req("relationToEmployee"); req("residential_address"); req("residential_city"); req("residential_state"); req("residential_zip_code"); req("residential_country"); req("is_address_same");
 		if (!form?.is_address_same) {
 			req("permanent_address");
 			req("permanent_city");
@@ -285,6 +289,52 @@ function validate(step, form) {
 
 		if (!form?.emergencyNumber && (!form?.emergencyNumber === form?.mobileNumber || form?.emergencyNumber === !form?.alternativeNumber)) {
 			e.emergencyNumber = "Emergency contact number must be different from personal mobile and alternative numbers";
+		}
+
+		if (form?.dob) {
+			const dob = new Date(form?.dob);
+			const today = new Date();
+			const diffMs = today - dob;
+
+			if (isNaN(dob.getTime())) e.dob = "Invalid date";
+			else if (diffMs < 0) e.dob = "Date of birth must be in the past";
+			else {
+				const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+				if (diffDays < (18 * 365.25))
+					e.dob = "You must be at least 18 years old";
+			}
+		}
+
+		if (form?.mobileNumber) {
+			try {
+				const fullNumber = `${form.mobileNumber.replace(/\s+/g, '')}`;
+
+				const validNumber = isValidPhoneNumber(fullNumber);
+				if (!validNumber) e.mobileNumber = 'Invalid Mobile number';
+			} catch (error) {
+				console.log(error);
+				e.mobileNumber = 'Invalid Mobile number'
+			}
+		}
+		if (form?.alternativeNumber) {
+			try {
+				const fullNumber = `${form.alternativeNumber.replace(/\s+/g, '')}`;
+				const validNumber = isValidPhoneNumber(fullNumber);
+				if (!validNumber) e.alternativeNumber = 'Invalid alternative mobile number';
+			} catch (error) {
+				console.log(error);
+				e.alternativeNumber = 'Invalid alternative mobile number'
+			}
+		}
+		if (form?.emergencyNumber) {
+			try {
+				const fullNumber = `${form.emergencyNumber.replace(/\s+/g, '')}`;
+				const validNumber = isValidPhoneNumber(fullNumber);
+				if (!validNumber) e.emergencyNumber = 'Invalid Emergency Number';
+			} catch (error) {
+				console.log(error);
+				e.emergencyNumber = 'Invalid Emergency Number'
+			}
 		}
 	}
 	if (step === 2) {
@@ -343,6 +393,8 @@ export default function OnboardingForm() {
 	const [tokenError, setTokenError] = useState(false);
 
 	const set = (field, value) => {
+		console.log(field, value);
+
 		setForm(f => ({ ...f, [field]: value }));
 		setErrors(e => ({ ...e, [field]: undefined }));
 	};
@@ -904,14 +956,19 @@ export default function OnboardingForm() {
 								</Field>
 								<Field label="Gender" required error={errors.gender}>
 									<FocusSelect value={form?.gender} onChange={e => set("gender", e.target.value)} error={errors.gender}>
-										<option value="">Prefer not to say</option>
+										<option value="">Select</option>
 										<option>Male</option>
 										<option>Female</option>
+										<option>Prefer not to say</option>
 										<option>Other</option>
 									</FocusSelect>
 								</Field>
 								<Field label="Nationality / Citizenship" required error={errors.nationality}>
-									<FocusInput value={form?.nationality} onChange={e => set("nationality", e.target.value)} placeholder="e.g. United States" error={errors.nationality} />
+									<CountrySelect
+										value={form?.nationality}
+										onChange={val => set("nationality", val)}
+										error={errors.nationality}
+									/>
 								</Field>
 								<Field label="Marital Status" required error={errors.maritalStatus}>
 									<FocusSelect value={form?.maritalStatus} onChange={e => set("maritalStatus", e.target.value)} error={errors.maritalStatus}>
@@ -943,11 +1000,28 @@ export default function OnboardingForm() {
 									<FocusInput value={form?.emergencyNumber} onChange={e => set("emergencyNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.emergencyNumber} />
 								</Field>
 								<Field label="Relationship to employee" required error={errors.relationToEmployee}>
-									<FocusInput value={form?.relationToEmployee} onChange={e => set("relationToEmployee", e.target.value)} placeholder="Relationship to employee" error={errors.relationToEmployee} />
+									<FocusSelect value={form?.relationToEmployee || form?.relationSelected} onChange={e => {
+										set("relationToEmployee", e.target.value !== 'other' ? e.target.value : "");
+										set("relationSelected", e.target.value)
+									}} error={errors.relationToEmployee}>
+										<option value="">Select</option>
+										{
+											relations?.map((relation, index) => (
+												<option key={index} value={relation.value}>
+													{relation.label}
+												</option>
+											))
+										}
+									</FocusSelect>
+									{
+										form?.relationSelected === 'other' && (
+											<FocusInput value={form?.relationToEmployee} onChange={e => set("relationToEmployee", e.target.value)} placeholder="Relationship to employee" error={errors.relationToEmployee} />
+										)
+									}
 								</Field>
 							</Grid>
 							<Divider />
-							<Grid cols={1}>
+							{/* <Grid cols={1}>
 								<Field label="Current Residential Address" required error={errors.residential_address} span>
 									<FocusTextarea value={form?.residential_address} onChange={e => set("residential_address", e.target.value)} placeholder="Address Line 1" error={errors.residential_address} />
 								</Field>
@@ -965,7 +1039,10 @@ export default function OnboardingForm() {
 								<Field label="ZIP" required error={errors.residential_zip_code}>
 									<FocusInput value={form?.residential_zip_code} onChange={e => set("residential_zip_code", e.target.value)} placeholder="ZIP Code" error={errors.residential_zip_code} />
 								</Field>
-							</Grid>
+							</Grid> */}
+
+							<AddressForm set={set} form={form} errors={errors} />
+
 							<SameAddressCheckbox checked={isSame} onChange={() => handleAddressChange()} error={errors.is_address_same} />
 							<Grid cols={1}>
 								<Field label="Permanent Address" required={!isSame} error={errors.permanent_address} span>
