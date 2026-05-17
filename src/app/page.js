@@ -9,6 +9,7 @@ import CountrySelect from "@/components/CountrySelect";
 import { isValidPhoneNumber } from 'libphonenumber-js';
 import relations from "../../public/data/relations.json";
 import AddressForm from "./address/page";
+import { PhoneInput } from "@/components/PhoneInput";
 
 const T = {
 	primary: "#1a3c34",
@@ -393,11 +394,13 @@ export default function OnboardingForm() {
 	const [tokenError, setTokenError] = useState(false);
 
 	const set = (field, value) => {
-		console.log(field, value);
-
 		setForm(f => ({ ...f, [field]: value }));
 		setErrors(e => ({ ...e, [field]: undefined }));
 	};
+
+	useEffect(() => {
+		console.log(form);
+	}, [form])
 
 	const goNext = () => {
 		const e = validate(step, form);
@@ -926,7 +929,9 @@ export default function OnboardingForm() {
 							<div style={{ ...s.stepDot, ...(step === st.id ? s.stepDotActive : {}), ...(step > st.id ? s.stepDotDone : {}) }}>
 								{step > st.id ? "✓" : st.id}
 							</div>
-							<span style={{ ...s.stepNavLabel, ...(step === st.id ? { color: T.primary, fontWeight: 700 } : {}) }}>{st.label}</span>
+							<span style={{ ...s.stepNavLabel, ...(step === st.id ? { color: T.primary, fontWeight: 700 } : {}) }}>
+								{st.label}
+							</span>
 						</div>
 					))}
 				</div>
@@ -985,10 +990,18 @@ export default function OnboardingForm() {
 									<FocusInput type="email" value={form?.alternativeEmail} onChange={e => set("alternativeEmail", e.target.value)} placeholder="your@email.com" error={errors.alternativeEmail} />
 								</Field>
 								<Field label="Mobile Number" required error={errors.mobileNumber}>
-									<FocusInput value={form?.mobileNumber} onChange={e => set("mobileNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.mobileNumber} />
+									<PhoneInput
+										value={form?.mobileNumber}
+										onChange={({ rawInput, full }) => set("mobileNumber", rawInput ?? full)}
+										error={errors.mobileNumber}
+									/>
 								</Field>
 								<Field label="Alternative Contact Number" error={errors.alternativeNumber}>
-									<FocusInput value={form?.alternativeNumber} onChange={e => set("alternativeNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.alternativeNumber} />
+									<PhoneInput
+										value={form?.alternativeNumber}
+										onChange={({ rawInput, full }) => set("alternativeNumber", rawInput ?? full)}
+										error={errors.alternativeNumber}
+									/>
 								</Field>
 							</Grid>
 							<Divider />
@@ -997,7 +1010,10 @@ export default function OnboardingForm() {
 									<FocusInput value={form?.emergencyContactName} onChange={e => set("emergencyContactName", e.target.value)} placeholder="Emergency Contact Name" error={errors.emergencyContactName} />
 								</Field>
 								<Field label="Emergency Contact Number" required error={errors.emergencyNumber}>
-									<FocusInput value={form?.emergencyNumber} onChange={e => set("emergencyNumber", e.target.value)} placeholder="+1 (555) 000-0000" error={errors.emergencyNumber} />
+									<PhoneInput
+										value={form?.emergencyNumber} onChange={({ rawInput, full }) => set("emergencyNumber", rawInput ?? full)}
+										error={errors.emergencyNumber}
+									/>
 								</Field>
 								<Field label="Relationship to employee" required error={errors.relationToEmployee}>
 									<FocusSelect value={form?.relationToEmployee || form?.relationSelected} onChange={e => {

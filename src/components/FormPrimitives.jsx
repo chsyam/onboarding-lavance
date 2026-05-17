@@ -9,9 +9,15 @@ const T = {
 };
 
 const s = {
-    input: { width: "100%", padding: "10px 13px", fontSize: 14, border: `1px solid ${T.border}`, borderRadius: 7, fontFamily: T.fontSans, color: T.text, background: "#fff", outline: "none", transition: "border-color 0.18s, box-shadow 0.18s", boxSizing: "border-box" },
-    label: { fontSize: 13, fontWeight: 600, color: "#374151", letterSpacing: "0.1px" },
-    errMsg: { fontSize: 12, color: T.error, fontWeight: 500 },
+    input: {
+        width: "100%", padding: "10px 13px", fontSize: 14, border: `1px solid ${T.border}`, borderRadius: 7, fontFamily: T.fontSans, color: T.text, background: "#fff", outline: "none", transition: "border-color 0.18s, box-shadow 0.18s", boxSizing: "border-box"
+    },
+    label: {
+        fontSize: 13, fontWeight: 600, color: "#374151", letterSpacing: "0.1px"
+    },
+    errMsg: {
+        fontSize: 12, color: T.error, fontWeight: 500
+    },
 };
 
 export function Err({ msg }) {

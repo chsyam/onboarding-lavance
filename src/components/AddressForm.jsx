@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Field, Grid, FocusInput, FocusTextarea } from '@/components/FormPrimitives';
 
-function AddressAutocomplete({ onSelect, errors, form, set }) {
+function AddressAutocomplete({ errors, form, set }) {
     const [suggestions, setSuggestions] = useState([]);
     const places = useMapsLibrary('places');
 
@@ -37,7 +37,6 @@ function AddressAutocomplete({ onSelect, errors, form, set }) {
                 zip: get('postal_code'),
             };
             console.log('parsed:', parsed);
-            onSelect(parsed);
         } catch (err) {
             console.error('Place fetch error:', err);
         }
@@ -61,6 +60,7 @@ function AddressAutocomplete({ onSelect, errors, form, set }) {
                     {suggestions.map((s, i) => (
                         <li key={i} onClick={() => {
                             e.preventDefault();
+                            console.log("Handle Select")
                             handleSelect(s)
                         }}
                             style={{ padding: '10px 14px', cursor: 'pointer', fontSize: 14, borderBottom: '1px solid #f3f4f6' }}
@@ -78,16 +78,16 @@ function AddressAutocomplete({ onSelect, errors, form, set }) {
 
 export default function AddressForm({ form, set, errors }) {
     const handleAddressSelect = (parsed) => {
-        set('residential_address', parsed.addressLine1);
-        set('residential_city', parsed.city);
-        set('residential_state', parsed.state);
-        set('residential_country', parsed.country);
-        set('residential_zip_code', parsed.zip)
+        // set('residential_address', parsed.addressLine1);
+        // set('residential_city', parsed.city);
+        // set('residential_state', parsed.state);
+        // set('residential_country', parsed.country);
+        // set('residential_zip_code', parsed.zip)
     };
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
-            <AddressAutocomplete onSelect={handleAddressSelect} errors={errors} form={form} set={set} />
+            <AddressAutocomplete errors={errors} form={form} set={set} />
 
             <Grid cols={2}>
                 <Field label="City" required error={errors.residential_city}>
