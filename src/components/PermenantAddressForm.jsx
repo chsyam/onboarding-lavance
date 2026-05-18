@@ -16,6 +16,7 @@ function AddressAutocomplete({ onSelect, errors }) {
         if (!places || value.length < 3) return;
 
         try {
+            // ✅ New API replacing AutocompleteService
             const { suggestions: results } = await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
                 input: value,
             });
@@ -32,6 +33,7 @@ function AddressAutocomplete({ onSelect, errors }) {
         setSuggestions([]);
 
         try {
+            // ✅ New API replacing Geocoder
             const place = suggestion.placePrediction.toPlace();
             await place.fetchFields({
                 fields: ['addressComponents'],
@@ -63,7 +65,7 @@ function AddressAutocomplete({ onSelect, errors }) {
                 value={input}
                 onChange={e => handleInput(e.target.value)}
                 placeholder="Address Line 1"
-                error={errors?.residential_address}
+                error={errors.permanent_address}
             />
             {suggestions.length > 0 && (
                 <ul style={{
@@ -102,40 +104,45 @@ function AddressAutocomplete({ onSelect, errors }) {
     );
 }
 
-export default function AddressForm({ form, set, errors }) {
+export default function PermenantAddressForm({ form, set, errors, isSame }) {
     const handleAddressSelect = (parsed) => {
-        set('residential_address', parsed.addressLine1);
-        set('residential_city', parsed.city);
-        set('residential_state', parsed.state);
-        set('residential_country', parsed.country);
-        set('residential_zip_code', parsed.zip);
+        set('permanent_address', parsed.addressLine1);
+        set('permanent_city', parsed.city);
+        set('permanent_state', parsed.state);
+        set('permanent_country', parsed.country);
+        set('permanent_zip_code', parsed.zip);
     };
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
             <style>{css}</style>
-            <Field label="Current Residential Address" required error={errors?.residential_address}>
-                <AddressAutocomplete onSelect={handleAddressSelect} errors={errors} />
-            </Field>
-
+            {
+                isSame ? (
+                    <Field label="Permanent Address" required={!isSame} error={errors.permanent_address} span>
+                        <FocusInput value={form?.permanent_address} onChange={e => set("permanent_address", e.target.value)} placeholder="Address Line 1" error={errors.permanent_address} disabled={isSame} />
+                    </Field>
+                ) : (
+                    <Field label="Permanent Address" required error={errors?.permanent_address}>
+                        <AddressAutocomplete onSelect={handleAddressSelect} errors={errors} />
+                    </Field>
+                )
+            }
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
-                <Field label="City" required error={errors?.residential_city}>
-                    <FocusInput value={form?.residential_city ?? ""} onChange={e => set('residential_city', e.target.value)} placeholder="City" error={errors?.residential_city} />
+                <Field label="City" required={!isSame} error={errors.permanent_city}>
+                    <FocusInput value={form?.permanent_city ?? ""} onChange={e => set("permanent_city", e.target.value)} placeholder="City" error={errors.permanent_city} disabled={isSame} />
                 </Field>
 
-                <Field label="State" required error={errors?.residential_state}>
-                    <FocusInput value={form?.residential_state ?? ""} onChange={e => set('residential_state', e.target.value)} placeholder="State" error={errors?.residential_state} />
+                <Field label="State" required={!isSame} error={errors.permanent_state}>
+                    <FocusInput value={form?.permanent_state ?? ""} onChange={e => set("permanent_state", e.target.value)} placeholder="State" error={errors.permanent_state} disabled={isSame} />
                 </Field>
-
-                <Field label="Country" required error={errors?.residential_country}>
-                    <FocusInput value={form?.residential_country ?? ""} onChange={e => set('residential_country', e.target.value)} placeholder="Country" error={errors?.residential_country} />
+                <Field label="Country" required={!isSame} error={errors.permanent_country}>
+                    <FocusInput value={form?.permanent_country} onChange={e => set("permanent_country", e.target.value)} placeholder="Country" error={errors.permanent_country} disabled={isSame} />
                 </Field>
-
-                <Field label="ZIP" required error={errors?.residential_zip_code}>
-                    <FocusInput value={form?.residential_zip_code ?? ""} onChange={e => set('residential_zip_code', e.target.value)} placeholder="ZIP Code" error={errors?.residential_zip_code} />
+                <Field label="ZIP" required={!isSame} error={errors.permanent_zip_code}>
+                    <FocusInput value={form?.permanent_zip_code} onChange={e => set("permanent_zip_code", e.target.value)} placeholder="ZIP Code" error={errors.permanent_zip_code} disabled={isSame} />
                 </Field>
             </div>
-        </APIProvider>
+        </APIProvider >
     );
 }
 

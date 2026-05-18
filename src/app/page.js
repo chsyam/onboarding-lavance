@@ -8,8 +8,9 @@ import Link from "next/link";
 import CountrySelect from "@/components/CountrySelect";
 import { isValidPhoneNumber } from 'libphonenumber-js';
 import relations from "../../public/data/relations.json";
-import AddressForm from "./address/page";
 import { PhoneInput } from "@/components/PhoneInput";
+import AddressForm from "@/components/AddressForm";
+import PermenantAddressForm from "@/components/PermenantAddressForm";
 
 const T = {
 	primary: "#1a3c34",
@@ -399,8 +400,20 @@ export default function OnboardingForm() {
 	};
 
 	useEffect(() => {
-		console.log(form);
-	}, [form])
+		if (isSame) {
+			set('permanent_address', form?.residential_address);
+			set('permanent_city', form?.residential_city);
+			set('permanent_state', form?.residential_state);
+			set('permanent_country', form?.residential_country);
+			set('permanent_zip_code', form?.residential_zip_code);
+		} else {
+			set('permanent_address', "");
+			set('permanent_city', "");
+			set('permanent_state', "");
+			set('permanent_country', "");
+			set('permanent_zip_code', "");
+		}
+	}, [isSame])
 
 	const goNext = () => {
 		const e = validate(step, form);
@@ -910,6 +923,13 @@ export default function OnboardingForm() {
 
 	const progress = ((step - 1) / (STEPS?.length - 1)) * 100;
 
+	const formatSSN = (val) => {
+		const digits = val?.replace(/\D/g, '')?.slice(0, 9);
+		if (digits?.length <= 3) return digits;
+		if (digits?.length <= 5) return `${digits?.slice(0, 3)}-${digits?.slice(3)}`;
+		return `${digits?.slice(0, 3)}-${digits?.slice(3, 5)}-${digits?.slice(5)}`;
+	};
+
 	return (
 		<>
 			<TokenValidation open={open} tokenError={tokenError} />
@@ -1037,48 +1057,14 @@ export default function OnboardingForm() {
 								</Field>
 							</Grid>
 							<Divider />
-							{/* <Grid cols={1}>
-								<Field label="Current Residential Address" required error={errors.residential_address} span>
-									<FocusTextarea value={form?.residential_address} onChange={e => set("residential_address", e.target.value)} placeholder="Address Line 1" error={errors.residential_address} />
-								</Field>
-							</Grid>
-							<Grid cols={2}>
-								<Field label="City" required error={errors.residential_city}>
-									<FocusInput value={form?.residential_city} onChange={e => set("residential_city", e.target.value)} placeholder="City" error={errors.residential_city} />
-								</Field>
-								<Field label="State" required error={errors.residential_state}>
-									<FocusInput value={form?.residential_state} onChange={e => set("residential_state", e.target.value)} placeholder="State" error={errors.residential_state} />
-								</Field>
-								<Field label="Country" required error={errors.residential_country}>
-									<FocusInput value={form?.residential_country} onChange={e => set("residential_country", e.target.value)} placeholder="Country" error={errors.residential_country} />
-								</Field>
-								<Field label="ZIP" required error={errors.residential_zip_code}>
-									<FocusInput value={form?.residential_zip_code} onChange={e => set("residential_zip_code", e.target.value)} placeholder="ZIP Code" error={errors.residential_zip_code} />
-								</Field>
-							</Grid> */}
-
 							<AddressForm set={set} form={form} errors={errors} />
 
-							<SameAddressCheckbox checked={isSame} onChange={() => handleAddressChange()} error={errors.is_address_same} />
-							<Grid cols={1}>
-								<Field label="Permanent Address" required={!isSame} error={errors.permanent_address} span>
-									<FocusTextarea value={isSame ? form?.residential_address : form?.permanent_address} onChange={e => set("permanent_address", e.target.value)} placeholder="Address Line 1" error={errors.permanent_address} />
-								</Field>
-							</Grid>
-							<Grid cols={2}>
-								<Field label="City" required={!isSame} error={errors.permanent_city}>
-									<FocusInput value={isSame ? form?.residential_city : form?.permanent_city} onChange={e => set("permanent_city", e.target.value)} placeholder="City" error={errors.permanent_city} />
-								</Field>
-								<Field label="State" required={!isSame} error={errors.permanent_state}>
-									<FocusInput value={isSame ? form?.residential_state : form?.permanent_state} onChange={e => set("permanent_state", e.target.value)} placeholder="State" error={errors.permanent_state} />
-								</Field>
-								<Field label="Country" required={!isSame} error={errors.permanent_country}>
-									<FocusInput value={isSame ? form?.residential_country : form?.permanent_country} onChange={e => set("permanent_country", e.target.value)} placeholder="Country" error={errors.permanent_country} />
-								</Field>
-								<Field label="ZIP" required={!isSame} error={errors.permanent_zip_code}>
-									<FocusInput value={isSame ? form?.residential_zip_code : form?.permanent_zip_code} onChange={e => set("permanent_zip_code", e.target.value)} placeholder="ZIP Code" error={errors.permanent_zip_code} />
-								</Field>
-							</Grid>
+							<SameAddressCheckbox
+								checked={isSame}
+								onChange={() => handleAddressChange()}
+							/>
+
+							<PermenantAddressForm set={set} form={form} errors={errors} isSame={isSame} />
 						</div>
 					)}
 
@@ -1087,7 +1073,12 @@ export default function OnboardingForm() {
 						<div className="step-anim">
 							<Grid cols={2}>
 								<Field label="Social Security Number (SSN)" required error={errors.ssn}>
-									<FocusInput value={form?.ssn} onChange={e => set("ssn", e.target.value)} placeholder="SSN required for payroll purposes" error={errors.ssn} />
+									<FocusInput
+										value={formatSSN(form?.ssn ?? '')}
+										onChange={e => set("ssn", e?.target?.value?.replace(/\D/g, '')?.slice(0, 9))}
+										placeholder="SSN required for payroll purposes"
+										error={errors.ssn}
+									/>
 								</Field>
 							</Grid>
 							<Divider />
@@ -1126,7 +1117,12 @@ export default function OnboardingForm() {
 												<FocusInput value={form?.passportNumber} onChange={e => set("passportNumber", e.target.value)} placeholder="e.g. A12345678" error={errors.passportNumber} />
 											</Field>
 											<Field label="Country of Issue" required error={errors.countryOfIssue}>
-												<FocusInput value={form?.countryOfIssue} onChange={e => set("countryOfIssue", e.target.value)} placeholder="e.g. United States" error={errors.countryOfIssue} />
+												<CountrySelect
+													value={form?.countryOfIssue}
+													onChange={val => set("countryOfIssue", val)}
+													placeholder="e.g. United States"
+													error={errors.countryOfIssue}
+												/>
 											</Field>
 											<Field label="Passport Expiry Date" required error={errors.passportExpiry}>
 												<FocusInput type="date" value={form?.passportExpiry} onChange={e => set("passportExpiry", e.target.value)} error={errors.passportExpiry} />
@@ -1231,16 +1227,21 @@ export default function OnboardingForm() {
 									<FocusInput value={form?.bankName} onChange={e => set("bankName", e.target.value)} placeholder="e.g. Chase, Wells Fargo" error={errors.bankName} />
 								</Field>
 								<Field label="Routing Number" required error={errors.routingNumber}>
-									<FocusInput value={form?.routingNumber} onChange={e => set("routingNumber", e.target.value)} placeholder="9-digit routing number" error={errors.routingNumber} />
+									<FocusInput
+										value={form?.routingNumber}
+										onChange={e => set("routingNumber", e.target.value.replace(/\D/g, '').slice(0, 9))}
+										placeholder="9-digit routing number"
+										error={errors.routingNumber}
+									/>
 								</Field>
 								<Field label="Confirm Routing Number" required error={errors.confirmRoutingNumber}>
-									<FocusInput value={form?.confirmRoutingNumber} onChange={e => set("confirmRoutingNumber", e.target.value)} placeholder="Confirm 9-digit routing number" error={errors.confirmRoutingNumber} />
+									<FocusInput value={form?.confirmRoutingNumber} onChange={e => set("confirmRoutingNumber", e.target.value.replace(/\D/g, '').slice(0, 9))} placeholder="Confirm 9-digit routing number" error={errors.confirmRoutingNumber} />
 								</Field>
 								<Field label="Account Number" required error={errors.accountNumber}>
-									<FocusInput value={form?.accountNumber} onChange={e => set("accountNumber", e.target.value)} placeholder="Account number" error={errors.accountNumber} />
+									<FocusInput value={form?.accountNumber} onChange={e => set("accountNumber", e.target.value.replace(/\D/g, '').slice(0, 17))} placeholder="Account number" error={errors.accountNumber} />
 								</Field>
 								<Field label="Confirm Account Number" required error={errors.confirmAccountNumber}>
-									<FocusInput value={form?.confirmAccountNumber} onChange={e => set("confirmAccountNumber", e.target.value)} placeholder="Confirm account number" error={errors.confirmAccountNumber} />
+									<FocusInput value={form?.confirmAccountNumber} onChange={e => set("confirmAccountNumber", e.target.value.replace(/\D/g, '').slice(0, 17))} placeholder="Confirm account number" error={errors.confirmAccountNumber} />
 								</Field>
 								<Field label="Account Type" required error={errors.accountType}>
 									<FocusSelect value={form?.accountType} onChange={e => set("accountType", e.target.value)} error={errors.accountType}>

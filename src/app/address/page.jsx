@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 
 const s = {
@@ -164,39 +164,37 @@ function AddressAutocomplete({ onSelect }) {
     );
 }
 
-export default function AddressForm({ form, set }) {
-    const [errors, setErrors] = useState({});
-
+export default function AddressForm({ form, set, errors }) {
     const handleAddressSelect = (parsed) => {
-        set('addressLine1', parsed.addressLine1);
-        set('city', parsed.city);
-        set('state', parsed.state);
-        set('country', parsed.country);
-        set('zip', parsed.zip);
+        set('residential_address', parsed.addressLine1);
+        set('residential_city', parsed.city);
+        set('residential_state', parsed.state);
+        set('residential_country', parsed.country);
+        set('residential_zip_code', parsed.zip);
     };
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
             <style>{css}</style>
-            <Field label="Current Residential Address" required error={errors.addressLine1}>
+            <Field label="Current Residential Address" required error={errors?.residential_address}>
                 <AddressAutocomplete onSelect={handleAddressSelect} />
             </Field>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
-                <Field label="City" required error={errors.city}>
-                    <FocusInput value={form?.city} onChange={e => set('city', e.target.value)} placeholder="City" error={errors.city} />
+                <Field label="City" required error={errors?.residential_city}>
+                    <FocusInput value={form?.residential_city ?? ""} onChange={e => set('residential_city', e.target.value)} placeholder="City" error={errors?.residential_city} />
                 </Field>
 
-                <Field label="State" required error={errors.state}>
-                    <FocusInput value={form?.state} onChange={e => set('state', e.target.value)} placeholder="State" error={errors.state} />
+                <Field label="State" required error={errors?.residential_state}>
+                    <FocusInput value={form?.residential_state ?? ""} onChange={e => set('residential_state', e.target.value)} placeholder="State" error={errors?.residential_state} />
                 </Field>
 
-                <Field label="Country" required error={errors.country}>
-                    <FocusInput value={form?.country} onChange={e => set('country', e.target.value)} placeholder="Country" error={errors.country} />
+                <Field label="Country" required error={errors?.residential_country}>
+                    <FocusInput value={form?.residential_country ?? ""} onChange={e => set('residential_country', e.target.value)} placeholder="Country" error={errors?.residential_country} />
                 </Field>
 
-                <Field label="ZIP" required error={errors.zip}>
-                    <FocusInput value={form?.zip} onChange={e => set('zip', e.target.value)} placeholder="ZIP Code" error={errors.zip} />
+                <Field label="ZIP" required error={errors?.residential_zip_code}>
+                    <FocusInput value={form?.residential_zip_code ?? ""} onChange={e => set('residential_zip_code', e.target.value)} placeholder="ZIP Code" error={errors?.residential_zip_code} />
                 </Field>
             </div>
         </APIProvider>

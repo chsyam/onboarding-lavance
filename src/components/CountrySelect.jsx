@@ -18,7 +18,7 @@ const countryOptions = countries.map(c => ({
     flag: c.flag_url
 }));
 
-const formatOptionLabel = ({ label, flag, dialCode }) => (
+const formatOptionLabel = ({ label, flag }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Image src={flag} alt="" width={20} height={15} style={{ borderRadius: 2 }} />
         <span>{label}</span>
