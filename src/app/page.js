@@ -11,6 +11,8 @@ import relations from "../../public/data/relations.json";
 import { PhoneInput } from "@/components/PhoneInput";
 import AddressForm from "@/components/AddressForm";
 import PermenantAddressForm from "@/components/PermenantAddressForm";
+import OnboardingFormHeader from "@/components/OnboardingFormHeader";
+import OnboardingNavbar from "@/components/OnboardingNavbar";
 
 const T = {
 	primary: "#1a3c34",
@@ -932,9 +934,11 @@ export default function OnboardingForm() {
 
 	return (
 		<>
+			<style>{css}</style>
+			<OnboardingNavbar />
+			<OnboardingFormHeader />
 			<TokenValidation open={open} tokenError={tokenError} />
 			<LoadingScreen isLoading={isLoading} />
-			<style>{css}</style>
 			<div style={s.page}>
 
 				{/* Top progress line */}
@@ -1399,7 +1403,7 @@ export default function OnboardingForm() {
 					</div>
 				</div>
 
-				<p style={{ textAlign: "center", fontSize: 12, color: T.textLight, marginTop: 20 }}>
+				<p style={{ textAlign: "center", fontSize: 14, color: T.textLight, marginTop: 20 }}>
 					Step {step} of {STEPS?.length} · Your progress is saved automatically
 				</p>
 			</div >
